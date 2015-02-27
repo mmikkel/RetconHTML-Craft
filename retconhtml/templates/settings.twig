@@ -2,7 +2,9 @@
 
 <h2>Image transforms</h2>
 
-<p class="instructions">By default, Retcon HTML will store all transformed images to a directory relative to your public basepath.<br/>If this doesn't float your boat, you can set a different path and URL below.</p>
+<p class="instructions">
+	By default, Retcon HTML will store all transformed images to directories relative to your public basepath.<br/>If this doesn't float your boat, you can set a different basepath and URL below.
+</p>
 
 <div class="field" id="baseTransformPath-field">
 
@@ -12,7 +14,7 @@
 			id: 'baseTransformPath',
 			name: 'baseTransformPath',
 			value : settings.baseTransformPath,
-			placeholder : '{uploadPath}/something/something',
+			placeholder : placeholderBasePath,
 		}) }}
 	</div>
 
@@ -26,8 +28,25 @@
 			id: 'baseTransformUrl',
 			name: 'baseTransformUrl',
 			value : settings.baseTransformUrl,
-			placeholder : '{siteUrl}/something/something',
+			placeholder : placeholderBaseUrl,
 		}) }}
+	</div>
+
+</div>
+
+<h2>Other settings</h2>
+
+<div class="field" id="encoding-field">
+
+	<div class="heading">
+		<label for="encoding">HTML encoding</label>
+		{{ forms.text({
+			id: 'encoding',
+			name: 'encoding',
+			value : settings.encoding,
+			placeholder : placeholderEncoding,
+		}) }}
+		<p class="instructions">Sets the encoding of any returned HTML</p>
 	</div>
 
 </div>

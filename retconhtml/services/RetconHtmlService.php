@@ -15,18 +15,49 @@ class RetconHtmlService extends BaseApplicationComponent
 {
 
 	protected 	$_allowedTransformExtensions = array( 'jpg', 'png', 'gif' ),
-				$_encoding = 'UTF-8',
 				$_transforms = null,
 				$_environmentVariables = null,
 				$_settings = null;
 
+
 	public function getSetting( $setting )
 	{
+
+		// Get settings
 		if ( $this->_settings === null ) {
+
 			$plugin = craft()->plugins->getPlugin( 'retconHtml' );
-			$this->_settings = $plugin->getSettings();
+			$pluginSettings = $plugin->getSettings();
+			$settings = array();
+
+			$settings[ 'baseTransformPath' ] = trim( rtrim( $pluginSettings->baseTransformPath, '/' ) ?: rtrim( $_SERVER[ 'DOCUMENT_ROOT' ], '/' ) );
+			$settings[ 'baseTransformUrl' ] = trim( rtrim( $pluginSettings->baseTransformUrl, '/' ) ?: rtrim( CRAFT_SITE_URL, '/' ) );
+			$settings[ 'encoding' ] = trim( $pluginSettings->encoding ) ?: 'UTF-8';
+
+			if ( strpos( $settings[ 'baseTransformPath' ], '{' ) > -1 || strpos( $settings[ 'baseTransformUrl' ], '{' ) > -1 ) {
+
+				// Get environment variables
+				if ( $this->_environmentVariables === null ) {
+					$this->_environmentVariables = craft()->config->get( 'environmentVariables' );
+				}
+
+				// Replace environment variables
+				if ( is_array( $this->_environmentVariables ) && ! empty( $this->_environmentVariables ) ) {
+					foreach ( $this->_environmentVariables as $key => $value ) {
+						$settings[ 'baseTransformPath' ] = preg_replace( '#/+#','/', str_replace( '{' . $key . '}', $value, $settings[ 'baseTransformPath' ] ) );
+						$settings[ 'baseTransformUrl' ] = preg_replace( '#/+#','/', str_replace( '{' . $key . '}', $value, $settings[ 'baseTransformUrl' ] ) );
+						$settings[ 'baseTransformUrl' ] = str_replace( ':/', '://', $settings[ 'baseTransformUrl' ] );
+					}
+				}
+
+			}
+
+			$this->_settings = $settings;
+
 		}
+
 		return $this->_settings[ $setting ] ?: false;
+
 	}
 
 	/*
@@ -38,7 +69,7 @@ class RetconHtmlService extends BaseApplicationComponent
 
 		// Get images from the DOM
 		@$dom = new \DOMDocument();
-		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', $this->_encoding ) );
+		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', $this->getEncoding() ) );
 		if ( ! $dom || ! @$domImages = $dom->getElementsByTagName( 'img' ) ) {
 			return $input;
 		}
@@ -99,9 +130,9 @@ class RetconHtmlService extends BaseApplicationComponent
 		}
 
 		// Get basepaths and URLs
-		$basePath = rtrim( $_SERVER[ 'DOCUMENT_ROOT' ], '/' ); // Todo: Get from plugin settings!!
-		$siteUrl = rtrim( CRAFT_SITE_URL, '/' );
-		$host = pathinfo( $siteUrl, PHP_URL_HOST );
+		$basePath = $this->getSetting( 'baseTransformPath' );
+		$baseUrl = $this->getSetting( 'baseTransformUrl' );
+		$host = pathinfo( $baseUrl, PHP_URL_HOST );
 
 		// Transform images and rewrite sources
 		foreach ( $domImages as $domImage ) {
@@ -180,7 +211,7 @@ class RetconHtmlService extends BaseApplicationComponent
 			}
 
 			// Phew! Now where's that src attribute...
-			$imageTransformedUrl = str_replace( $basePath, $siteUrl, $imageTransformedPath );
+			$imageTransformedUrl = str_replace( $basePath, $baseUrl, $imageTransformedPath );
 
 			$domImage->setAttribute( 'src', $imageTransformedUrl );
 
@@ -213,7 +244,7 @@ class RetconHtmlService extends BaseApplicationComponent
 	{
 
 		@$dom = new \DOMDocument();
-		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', $this->_encoding ) );
+		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', $this->getEncoding() ) );
 
 		if ( ! $dom || ! @$domImages = $dom->getElementsByTagName( 'img' ) ) {
 			return $input;
@@ -242,7 +273,7 @@ class RetconHtmlService extends BaseApplicationComponent
 	{
 
 		@$dom = new \DOMDocument();
-		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', $this->_encoding ) );
+		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', $this->getEncoding() ) );
 
 		if ( ! $dom || ! @$domImages = $dom->getElementsByTagName( 'img' ) ) {
 			return $input;
@@ -284,7 +315,7 @@ class RetconHtmlService extends BaseApplicationComponent
 		}
 
 		@$dom = new \DOMDocument();
-		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', $this->_encoding ) );
+		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', $this->getEncoding() ) );
 
 		if ( ! $dom ) {
 			return $input;
@@ -371,7 +402,7 @@ class RetconHtmlService extends BaseApplicationComponent
 		}
 
 		@$dom = new \DOMDocument();
-		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', $this->_encoding ) );
+		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', $this->getEncoding() ) );
 
 		if ( ! $dom ) {
 			return $input;
@@ -499,6 +530,11 @@ class RetconHtmlService extends BaseApplicationComponent
 
 		}
 
+	}
+
+	protected function getEncoding()
+	{
+		return trim( $this->getSetting( 'encoding' ) );
 	}
 
 	protected function getHtml( $html )

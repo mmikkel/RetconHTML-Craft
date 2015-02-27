@@ -52,17 +52,24 @@ class RetconHtmlPlugin extends BasePlugin
 	protected function defineSettings()
     {
         return array(
-            'baseTransformPath' => array( AttributeType::String, 'default' => '' ),
-            'baseTransformUrl' => array( AttributeType::String, 'default' => '' ),
-            'encoding' => array( AttributeType::String, 'default' => 'UTF-8' ),
+            'baseTransformPath' => AttributeType::String,
+            'baseTransformUrl' => AttributeType::String,
+            'encoding' => AttributeType::String,
         );
     }
 
     public function getSettingsHtml()
     {
+
+        $definedSettings = $this->defineSettings();
+
         return craft()->templates->render( 'retconHtml/settings', array(
             'settings' => $this->getSettings(),
+            'placeholderBasePath' => '{basePath}/something/something',
+            'placeholderBaseUrl' => '{siteUrl}/something/something',
+            'placeholderEncoding' => 'UTF-8',
         ) );
+
     }
 
 	public function addTwigExtension()
