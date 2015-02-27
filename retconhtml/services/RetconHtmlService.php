@@ -291,35 +291,29 @@ class RetconHtmlService extends BaseApplicationComponent
 		}
 
 		@$dom->preserveWhiteSpace = false;
-		$xpath = false;
+		$xpath = null;
 
 		$numElementsRewritten = 0;
 
 		foreach ( $selectors as $selector ) {
 
 			// Get all matching selectors, and add/replace attributes
-			$selector = preg_replace( '/\s+/', '', $selector );
-			$selectorType = $this->isTagOrClassOrId( $selector );
+			$selector = $this->getSelector( $selector );
 
-			if ( $selectorType === 'class' || $selectorType === 'id' ) {
+			// ID or class
+			if ( $selector->attribute ) {
 
-				$selector = substr( $selector, 1 );
-
-				if ( ! $xpath ) {
+				if ( $xpath === null ) {
 					@$xpath = new \DomXPath( $dom );
 				}
 
-				if ( $selectorType === 'class' ) {
-					$query = '//*[contains(concat(" ",@class," "), "' . $selector . '")]';
-				} else {
-					$query = '//*[@id = "' . $selector . '"]';
-				}
-
+				$query = '//' . $selector->tag . '[contains(concat(" ",@' . $selector->attribute . '," "), "' . $selector->attributeValue . '")]';
 				$elements = @$xpath->query( $query );
+
 
 			} else {
 
-				$elements = @$dom->getElementsByTagName( $selector );
+				$elements = @$dom->getElementsByTagName( $selector->tag );
 
 			}
 
@@ -384,29 +378,22 @@ class RetconHtmlService extends BaseApplicationComponent
 		}
 
 		@$dom->preserveWhiteSpace = false;
-		$xpath = false;
+		$xpath = null;
 
 		$numElementsRemoved = 0;
 
 		foreach ( $selectors as $selector ) {
 
 			// Get all matching selectors, and remove them
-			$selector = preg_replace( '/\s+/', '', $selector );
-			$selectorType = $this->isTagOrClassOrId( $selector );
+			$selector = $this->getSelector( $selector );
 
-			if ( $selectorType === 'class' || $selectorType === 'id' ) {
+			if ( $selector->attribute ) {
 
-				$selector = substr( $selector, 1 );
-
-				if ( ! $xpath ) {
+				if ( $xpath === null ) {
 					@$xpath = new \DomXPath( $dom );
 				}
 
-				if ( $selectorType === 'class' ) {
-					$query = '//*[contains(concat(" ",@class," "), "' . $selector . '")]';
-				} else {
-					$query = '//*[@id = "' . $selector . '"]';
-				}
+				$query = '//' . $selector->tag . '[contains(concat(" ",@' . $selector->attribute . '," "), "' . $selector->attributeValue . '")]';
 
 				$elements = @$xpath->query( $query );
 
@@ -424,15 +411,13 @@ class RetconHtmlService extends BaseApplicationComponent
 
 			} else {
 
-				if ( ( $elements = @$dom->getElementsByTagName( $selector ) ) && $elements->length > 0 ) {
+				$elements = @$dom->getElementsByTagName( $selector->tag );
 
-					// Remove nodes
-					while ( $elements->length > 0 ) {
-						$element = $elements->item( 0 );
-						$element->parentNode->removeChild( $element );
-						$numElementsRemoved++;
-					}
-
+				// Remove nodes
+				while ( $elements->length > 0 ) {
+					$element = $elements->item( 0 );
+					$element->parentNode->removeChild( $element );
+					$numElementsRemoved++;
 				}
 
 			}
@@ -444,6 +429,55 @@ class RetconHtmlService extends BaseApplicationComponent
 		}
 
 		return $input;
+
+	}
+
+	/*
+	* Changes tag types
+	*
+	*/
+	public function change( $input, $selectors, $toTag )
+	{
+
+		// TODO
+		return $input;
+
+	}
+
+	protected function getSelector( $selector )
+	{
+
+		$delimiters = array( 'id' => '#', 'class' => '.' );
+
+		$selectorString = preg_replace( '/\s+/', '', $selector );
+
+		$selector = array(
+			'tag' => $selector,
+			'attribute' => false,
+			'attributeValue' => false,
+		);
+
+		// Check for class or ID
+		foreach ( $delimiters as $attribute => $indicator ) {
+
+			if ( strpos( $selectorString, $indicator ) > -1 ) {
+
+				$temp = explode( $indicator, $selectorString );
+
+				$selector[ 'tag' ] = $temp[ 0 ] !== '' ? $temp[ 0 ] : '*';
+
+				if ( ( $attributeValue = $temp[ count( $temp ) - 1 ] ) !== '' ) {
+					$selector[ 'attribute' ] = $attribute;
+					$selector[ 'attributeValue' ] = $attributeValue;
+				}
+
+				break;
+
+			}
+
+		}
+
+		return (object) $selector;
 
 	}
 
