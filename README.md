@@ -51,3 +51,13 @@ Method name: attr
 Parameters:
 
 @attr
+
+
+
+// Chaining
+
+{{ yourHtml | retcon( [
+	{ 'transform', 'yourNamedTransform' }, // Transform all images using the named transform "myNamedTransform"
+	{ 'lazy', 'myLazyImageClass' }, // Rewrite all images for lazy loading, using the class .myLazyImageClass
+	{ 'attr', 'img', 'class', 'myImageClass' }, // Add the class .myImageClass to all image tags
+] ) }}

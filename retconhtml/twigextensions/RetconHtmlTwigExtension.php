@@ -17,12 +17,16 @@ class RetconHtmlTwigExtension extends \Twig_Extension
 		return array(
 			// Apply an image transform to all <img> tags
 			'retconTransform' => new Twig_Filter_Method( $this, 'transform' ),
-			// Add (or overwrite) attributes for selector
-			'retconAttr' => new Twig_Filter_Method( $this, 'attr' ),
 			// Rewrite <img> tags for lazy loading
 			'retconLazy' => new Twig_Filter_Method( $this, 'lazy' ),
+			// Add automatic alt tags to images
+			'retconAutoAlt' => new Twig_Filter_Method( $this, 'autoAlt' ),
+			// Add (or overwrite) attributes for selector
+			'retconAttr' => new Twig_Filter_Method( $this, 'attr' ),
 			// Wrap selectors in other selectors!
 			'retconWrap' => new Twig_Filter_Method( $this, 'wrap' ),
+			// Unwrap seleectors by negative depth
+			'retconUnwrap' => new Twig_Filter_Method( $this, 'unwrap' ),
 			// Remove the matching selector(s)!
 			'retconRemove' => new Twig_Filter_Method( $this, 'remove' ),
 			// Remove *everything but* the matching selector(s)!
@@ -39,7 +43,7 @@ class RetconHtmlTwigExtension extends \Twig_Extension
 
 	public function attr( $input, $selectors, $attributes = array(), $overwrite = true )
 	{
-		return craft()->retconHtml->attr( $input, $attributes, $selectors, $overwrite );
+		return is_array( $attributes ) && count( $attributes ) > 0 ? craft()->retconHtml->attr( $input, $selectors, $attributes, $overwrite );
 	}
 
 	public function lazy( $input, $class = null, $attribute = null )
@@ -55,9 +59,18 @@ class RetconHtmlTwigExtension extends \Twig_Extension
 		return $input;
 	}
 
-	public function remove( $input, $selectors )
+	public function unwrap( $input, $selectors, $depth = 1 )
 	{
 		return $input;
+	}
+
+	/*
+	* Removes all matching selectors
+	*
+	*/
+	public function remove( $input, $selectors )
+	{
+		return craft()->retconHtml->remove( $input, $selectors );
 	}
 
 	public function only( $input, $selectors )

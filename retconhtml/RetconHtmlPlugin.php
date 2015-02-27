@@ -54,6 +54,7 @@ class RetconHtmlPlugin extends BasePlugin
         return array(
             'baseTransformPath' => array( AttributeType::String, 'default' => '' ),
             'baseTransformUrl' => array( AttributeType::String, 'default' => '' ),
+            'encoding' => array( AttributeType::String, 'default' => 'UTF-8' ),
         );
     }
 
@@ -71,6 +72,8 @@ class RetconHtmlPlugin extends BasePlugin
 	}
 
 	public function init () {
+
+		// Get settings
 
 		parent::init();
 

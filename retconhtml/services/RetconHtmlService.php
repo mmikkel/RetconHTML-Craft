@@ -15,20 +15,12 @@ class RetconHtmlService extends BaseApplicationComponent
 {
 
 	protected 	$_allowedTransformExtensions = array( 'jpg', 'png', 'gif' ),
+				$_encoding = 'UTF-8',
 				$_transforms = null,
 				$_environmentVariables = null;
 
-	protected function prepareHtml( $html ) {
+	protected function getHtml( $html ) {
 		return TemplateHelper::getRaw( preg_replace( '~<(?:!DOCTYPE|/?(?:html|head|body))[^>]*>\s*~i', '', $html ) ) ?: false;
-	}
-
-	/*
-	*
-	*
-	*/
-	public function attr( $input, $tags, $attributes )
-	{
-		return $input;
 	}
 
 	/*
@@ -40,8 +32,8 @@ class RetconHtmlService extends BaseApplicationComponent
 
 		// Get images from the DOM
 		@$dom = new \DOMDocument();
-		@$dom->loadHTML( $input );
-		if ( ! @$domImages = $dom->getElementsByTagName( 'img' ) ) {
+		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', $this->_encoding ) );
+		if ( ! $dom || ! @$domImages = $dom->getElementsByTagName( 'img' ) ) {
 			return $input;
 		}
 
@@ -120,13 +112,18 @@ class RetconHtmlService extends BaseApplicationComponent
 			// Is image local?
 			$imageIsLocal = ! ( isset( $imageUrlInfo[ 'host' ] ) && $imageUrlInfo[ 'host' ] !== $host );
 
+			if ( ! $imageIsLocal ) {
+				// Non-local images not supported yet
+				continue;
+			}
+
 			// Build filename/path
 			$imageTransformedFilename = $imagePathInfo[ 'filename' ] . '.' . ( $transformFormat ?: $imagePathInfo[ 'extension' ] );
 			$imageTransformedFolder = $basePath . $imagePathInfo[ 'dirname' ] . '/_' . $transformHandle;
 			$imageTransformedPath = $imageTransformedFolder . '/' . $imageTransformedFilename;
 
 			// Exit if local file doesn't even exist. Sheesh
-			if ( $imageIsLocal && ! file_exists( $basePath . $imageUrlInfo[ 'path' ] ) ) {
+			if ( ! file_exists( $basePath . $imageUrlInfo[ 'path' ] ) ) {
 				continue;
 			}
 
@@ -183,10 +180,16 @@ class RetconHtmlService extends BaseApplicationComponent
 
 			// Phew! Now where's that src attribute...
 			$imageTransformedUrl = str_replace( $basePath, $siteUrl, $imageTransformedPath );
+			
 			$domImage->setAttribute( 'src', $imageTransformedUrl );
 
-			// $image->setAttribute( 'width', $asset->getWidth( $transform ) ); // TODO: Only set if already set I guess
-			// $image->setAttribute( 'height', $asset->getHeight( $transform ) );
+			if ( $domImage->getAttribute( 'width' ) ) {
+				$domImage->setAttribute( 'width', $transformWidth );
+			}
+
+			if ( $domImage->getAttribute( 'height' ) ) {
+				$domImage->setAttribute( 'height', $transformWidth );
+			}
 
 			$numSourcesRewritten++;
 			
@@ -194,7 +197,7 @@ class RetconHtmlService extends BaseApplicationComponent
 
 		// Only bother parsing the HTML if we actually rewrote any sources
 		if ( $numSourcesRewritten > 0 ) {
-			return $this->prepareHtml( @$dom->saveHTML() ) ?: $input;
+			return $this->getHtml( @$dom->saveHTML() ) ?: $input;
 		}
 
 		return $input;
@@ -209,9 +212,9 @@ class RetconHtmlService extends BaseApplicationComponent
 	{
 
 		@$dom = new \DOMDocument();
-		@$dom->loadHTML( $input );
+		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', $this->_encoding ) );
 
-		if ( ! @$domImages = $dom->getElementsByTagName( 'img' ) ) {
+		if ( ! $dom || ! @$domImages = $dom->getElementsByTagName( 'img' ) ) {
 			return $input;
 		}
 
@@ -223,10 +226,196 @@ class RetconHtmlService extends BaseApplicationComponent
 			$imageClasses[] = $className;
 			$domImage->setAttribute( 'class', trim( implode( ' ', $imageClasses ) ) );
 			$domImage->setAttribute( $attributeName, $domImage->getAttribute( 'src' ) );
-			$domImage->setAttribute( 'src', 'image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAIC‌​RAEAOw==' );
+			$domImage->setAttribute( 'src', 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' );
 		}
 
-		return $this->prepareHtml( @$dom->saveHTML() ) ?: $input;
+		return $this->getHtml( @$dom->saveHTML() ) ?: $input;
+
+	}
+
+	/*
+	* Adds or replaces attributes
+	*
+	*/
+	public function attr( $input, $selectors, $attributes, $overwrite )
+	{
+
+		if ( ! is_array( $selectors ) ) {
+			$selectors = array( $selectors );
+		}
+
+		@$dom = new \DOMDocument();
+		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', $this->_encoding ) );
+
+		if ( ! $dom ) {
+			return $input;
+		}
+
+		@$dom->preserveWhiteSpace = false;
+		$xpath = false;
+
+		$numElementsRewritten = 0;
+
+		foreach ( $selectors as $selector ) {
+
+			// Get all matching selectors, and add/replace attributes
+			$selector = preg_replace( '/\s+/', '', $selector );
+			$selectorType = $this->isTagOrClassOrId( $selector );
+
+			if ( $selectorType === 'class' || $selectorType === 'id' ) {
+
+				$selector = substr( $selector, 1 );
+				
+				if ( ! $xpath ) {
+					@$xpath = new \DomXPath( $dom );
+				}
+
+				if ( $selectorType === 'class' ) {
+					$query = '//*[contains(@class, "' . $selector . '")]';
+				} else {
+					$query = '//*[@id = "' . $selector . '"]';
+				}
+
+				$elements = @$xpath->query( $query );
+
+				if ( $elements && $elements->length > 0 ) {
+
+					foreach ( $elements as $element ) {
+						
+					}
+
+				}
+
+			} else {
+
+				if ( ( $elements = @$dom->getElementsByTagName( $selector ) ) && $elements->length > 0 ) {
+
+					foreach ( $elements as $element ) {
+
+
+
+					}
+
+				}
+
+			}
+
+		}
+
+		if ( $numElementsRemoved > 0 ) {
+			return $this->getHtml( @$dom->saveHTML() ) ?: $input;
+		}
+
+		return $input;
+	}
+
+	/*
+	* Removes all matching selectors
+	*
+	*/
+	public function remove( $input, $selectors )
+	{
+		
+		if ( ! is_array( $selectors ) ) {
+			$selectors = array( $selectors );
+		}
+
+		@$dom = new \DOMDocument();
+		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', $this->_encoding ) );
+
+		if ( ! $dom ) {
+			return $input;
+		}
+
+		@$dom->preserveWhiteSpace = false;
+		$xpath = false;
+
+		$numElementsRemoved = 0;
+
+		foreach ( $selectors as $selector ) {
+
+			// Get all matching selectors, and remove them
+			$selector = preg_replace( '/\s+/', '', $selector );
+			$selectorType = $this->isTagOrClassOrId( $selector );
+
+			if ( $selectorType === 'class' || $selectorType === 'id' ) {
+
+				$selector = substr( $selector, 1 );
+				
+				if ( ! $xpath ) {
+					@$xpath = new \DomXPath( $dom );
+				}
+
+				if ( $selectorType === 'class' ) {
+					$query = '//*[contains(@class, "' . $selector . '")]';
+				} else {
+					$query = '//*[@id = "' . $selector . '"]';
+				}
+
+				$elements = @$xpath->query( $query );
+
+				if ( $elements && $elements->length > 0 ) {
+
+					// Remove nodes
+					foreach ( $elements as $element ) {
+						
+						if ( $selectorType === 'class' ) {
+							// The contains directive uses fuzzy matching – make sure we have a solid match for class name
+							$classes = explode( ' ', $element->getAttribute( 'class' ) );
+							if ( ! in_array( $selector, $classes ) ) {
+								continue;
+							}
+						}
+
+						$element->parentNode->removeChild( $element );
+						$numElementsRemoved++;
+
+					}
+
+				}
+
+			} else {
+
+				if ( ( $elements = @$dom->getElementsByTagName( $selector ) ) && $elements->length > 0 ) {
+
+					// Remove nodes
+					while ( $elements->length > 0 ) {
+						$element = $elements->item( 0 );
+						$element->parentNode->removeChild( $element );
+						$numElementsRemoved++;
+					}
+
+				}
+
+			}
+
+		}
+
+		if ( $numElementsRemoved > 0 ) {
+			return $this->getHtml( @$dom->saveHTML() ) ?: $input;
+		}
+
+		return $input;
+
+	}
+
+	protected function isTagOrClassOrId( $selector )
+	{
+
+		$firstChar = $selector[ 0 ];
+
+		switch ( $firstChar ) {
+
+			case '#' :
+				return 'id';
+
+			case '.' :
+				return 'class';
+
+			default :
+				return 'tag';
+
+		}
 
 	}
 
