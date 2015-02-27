@@ -464,17 +464,94 @@ class RetconHtmlService extends BaseApplicationComponent
 	}
 
 	/*
-	* Changes tag types
+	* Change tag types
 	*
 	*/
 	public function change( $input, $selectors, $toTag )
 	{
 
-		// TODO
+		if ( ! is_array( $selectors ) ) {
+			$selectors = array( $selectors );
+		}
+
+		@$dom = new \DOMDocument();
+		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', $this->getEncoding() ) );
+		@$dom->normalize();
+
+		if ( ! $dom ) {
+			return $input;
+		}
+
+		@$dom->preserveWhiteSpace = false;
+		$xpath = null;
+
+		$numElementsRewritten = 0;
+
+		foreach ( $selectors as $selector ) {
+
+			// Get all matching selectors, and add/replace attributes
+			$selector = $this->getSelector( $selector );
+
+			// ID or class
+			if ( $selector->attribute ) {
+
+				if ( $xpath === null ) {
+					@$xpath = new \DomXPath( $dom );
+				}
+
+				$query = '//' . $selector->tag . '[contains(concat(" ",@' . $selector->attribute . '," "), "' . $selector->attributeValue . '")]';
+				$elements = @$xpath->query( $query );
+
+
+			} else {
+
+				$elements = @$dom->getElementsByTagName( $selector->tag );
+
+			}
+
+			if ( ! isset( $elements ) || $elements->length === 0 ) {
+				continue;
+			}
+
+			foreach ( $elements as $element ) {
+
+				// Perform a deep copy of the element, changing its tag name
+				$children = array();
+
+				foreach ( $element->childNodes as $child ) {
+					$children[] = $child;
+				}
+
+				$newElement = $element->ownerDocument->createElement( $toTag );
+
+				foreach ( $children as $child ) {
+					$newElement->appendChild( $element->ownerDocument->importNode( $child, true ) );
+				}
+
+				foreach ( $element->attributes as $attribute ) {
+					$newElement->setAttribute( $attribute->nodeName, $attribute->nodeValue );
+				}
+
+			    $element->parentNode->replaceChild( $newElement, $element );
+
+    			$numElementsRewritten++;
+
+			}
+
+		}
+
+		if ( $numElementsRewritten > 0 ) {
+			return $this->getHtml( @$dom->saveHTML() ) ?: $input;
+		}
+
 		return $input;
 
 	}
 
+	/*
+	* Parse selector string and return components
+	*
+	*/
 	protected function getSelector( $selector )
 	{
 
@@ -509,26 +586,6 @@ class RetconHtmlService extends BaseApplicationComponent
 		}
 
 		return (object) $selector;
-
-	}
-
-	protected function isTagOrClassOrId( $selector )
-	{
-
-		$firstChar = $selector[ 0 ];
-
-		switch ( $firstChar ) {
-
-			case '#' :
-				return 'id';
-
-			case '.' :
-				return 'class';
-
-			default :
-				return 'tag';
-
-		}
 
 	}
 

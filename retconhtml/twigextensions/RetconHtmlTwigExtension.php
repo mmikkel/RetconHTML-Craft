@@ -12,6 +12,8 @@ class RetconHtmlTwigExtension extends \Twig_Extension
         return 'Retcon HTML';
     }
 
+    // TODO : make selectors like p.className possible
+
 	public function getFilters()
 	{
 		return array(
@@ -84,9 +86,9 @@ class RetconHtmlTwigExtension extends \Twig_Extension
 	}
 
 	// <p>Something</p> => <span>Something</span>
-	public function change( $input, $fromTag, $toTag )
+	public function change( $input, $selectors, $toTag )
 	{
-		return $input;
+		return craft()->retconHtml->change( $input, $selectors, $toTag );
 	}
 
 }
