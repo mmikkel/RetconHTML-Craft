@@ -1,0 +1,35 @@
+{% import '_includes/forms' as forms %}
+
+<h2>Image transforms</h2>
+
+<p class="instructions">By default, Retcon HTML will store all transformed images to a directory relative to your public basepath.<br/>If this doesn't float your boat, you can set a different path and URL below.</p>
+
+<div class="field" id="baseTransformPath-field">
+
+	<div class="heading">
+		<label for="baseTransformPath">Base transform path</label>
+		{{ forms.text({
+			id: 'baseTransformPath',
+			name: 'baseTransformPath',
+			value : settings.baseTransformPath,
+			placeholder : '{uploadPath}/something/something',
+		}) }}
+	</div>
+
+</div>
+
+<div class="field" id="baseTransformUrl-field">
+
+	<div class="heading">
+		<label for="baseTransformUrl">Base transform URL</label>
+		{{ forms.text({
+			id: 'baseTransformUrl',
+			name: 'baseTransformUrl',
+			value : settings.baseTransformUrl,
+			placeholder : '{siteUrl}/something/something',
+		}) }}
+	</div>
+
+</div>
+
+<hr />
