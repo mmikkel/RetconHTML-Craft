@@ -17,10 +17,16 @@ class RetconHtmlService extends BaseApplicationComponent
 	protected 	$_allowedTransformExtensions = array( 'jpg', 'png', 'gif' ),
 				$_encoding = 'UTF-8',
 				$_transforms = null,
-				$_environmentVariables = null;
+				$_environmentVariables = null,
+				$_settings = null;
 
-	protected function getHtml( $html ) {
-		return TemplateHelper::getRaw( preg_replace( '~<(?:!DOCTYPE|/?(?:html|head|body))[^>]*>\s*~i', '', $html ) ) ?: false;
+	public function getSetting( $setting )
+	{
+		if ( $this->_settings === null ) {
+			$plugin = craft()->plugins->getPlugin( 'retconHtml' );
+			$this->_settings = $plugin->getSettings();
+		}
+		return $this->_settings[ $setting ] ?: false;
 	}
 
 	/*
@@ -60,7 +66,7 @@ class RetconHtmlService extends BaseApplicationComponent
 
 		} else {
 
-			// Nah.			
+			// Nah.
 			return $input;
 
 		}
@@ -80,7 +86,7 @@ class RetconHtmlService extends BaseApplicationComponent
 
 		// Create transform handle if missing
 		if ( ! isset( $transformHandle ) ) {
-			
+
 			$transformFilenameAttributes = array(
 				$transformWidth . 'x' . $transformHeight,
 				$transformMode,
@@ -103,7 +109,7 @@ class RetconHtmlService extends BaseApplicationComponent
 			$imageUrl = $domImage->getAttribute( 'src' );
 			$imageUrlInfo = parse_url( $imageUrl );
 			$imagePathInfo = pathinfo( $imageUrlInfo[ 'path' ] );
-			
+
 			// Check extension
 			if ( ! in_array( $imagePathInfo[ 'extension' ], $this->_allowedTransformExtensions ) ) {
 				continue;
@@ -138,11 +144,6 @@ class RetconHtmlService extends BaseApplicationComponent
 			// Transform image
 			if ( ! file_exists( $imageTransformedPath ) ) {
 
-				if ( ! $imageIsLocal ) {
-					// TODO: Store external images in storage
-					continue;
-				}
-				
 				$domImagesource = $basePath . $imageUrlInfo[ 'path' ];
 				$image = @craft()->images->loadImage( $domImagesource );
 
@@ -151,7 +152,7 @@ class RetconHtmlService extends BaseApplicationComponent
 				}
 
 				@$image->setQuality( $transformQuality );
-				
+
 				switch ( $transformMode ) {
 
 					case 'crop' :
@@ -180,7 +181,7 @@ class RetconHtmlService extends BaseApplicationComponent
 
 			// Phew! Now where's that src attribute...
 			$imageTransformedUrl = str_replace( $basePath, $siteUrl, $imageTransformedPath );
-			
+
 			$domImage->setAttribute( 'src', $imageTransformedUrl );
 
 			if ( $domImage->getAttribute( 'width' ) ) {
@@ -192,7 +193,7 @@ class RetconHtmlService extends BaseApplicationComponent
 			}
 
 			$numSourcesRewritten++;
-			
+
 		}
 
 		// Only bother parsing the HTML if we actually rewrote any sources
@@ -265,36 +266,53 @@ class RetconHtmlService extends BaseApplicationComponent
 			if ( $selectorType === 'class' || $selectorType === 'id' ) {
 
 				$selector = substr( $selector, 1 );
-				
+
 				if ( ! $xpath ) {
 					@$xpath = new \DomXPath( $dom );
 				}
 
 				if ( $selectorType === 'class' ) {
-					$query = '//*[contains(@class, "' . $selector . '")]';
+					$query = '//*[contains(concat(" ",@class," "), "' . $selector . '")]';
 				} else {
 					$query = '//*[@id = "' . $selector . '"]';
 				}
 
 				$elements = @$xpath->query( $query );
 
-				if ( $elements && $elements->length > 0 ) {
-
-					foreach ( $elements as $element ) {
-						
-					}
-
-				}
-
 			} else {
 
-				if ( ( $elements = @$dom->getElementsByTagName( $selector ) ) && $elements->length > 0 ) {
+				$elements = @$dom->getElementsByTagName( $selector );
 
-					foreach ( $elements as $element ) {
+			}
 
+			if ( ! isset( $elements ) || $elements->length === 0 ) {
+				continue;
+			}
 
+			foreach ( $elements as $element ) {
 
+				foreach ( $attributes as $key => $value ) {
+
+					// Add or remove?
+					if ( ! $value ) {
+
+						$element->removeAttribute( $key );
+
+					} else {
+
+						if ( ! $overwrite && $key !== 'id' ) {
+							$attributeValues = explode( ' ', $element->getAttribute( $key ) );
+							if ( ! in_array( $value, $attributeValues ) ) {
+								$attributeValues[] = $value;
+							}
+						} else {
+							$attributeValues = array( $value );
+						}
+
+						$element->setAttribute( $key, trim( implode( ' ', $attributeValues ) ) );
 					}
+
+					$numElementsRewritten++;
 
 				}
 
@@ -302,7 +320,7 @@ class RetconHtmlService extends BaseApplicationComponent
 
 		}
 
-		if ( $numElementsRemoved > 0 ) {
+		if ( $numElementsRewritten > 0 ) {
 			return $this->getHtml( @$dom->saveHTML() ) ?: $input;
 		}
 
@@ -315,7 +333,7 @@ class RetconHtmlService extends BaseApplicationComponent
 	*/
 	public function remove( $input, $selectors )
 	{
-		
+
 		if ( ! is_array( $selectors ) ) {
 			$selectors = array( $selectors );
 		}
@@ -341,13 +359,13 @@ class RetconHtmlService extends BaseApplicationComponent
 			if ( $selectorType === 'class' || $selectorType === 'id' ) {
 
 				$selector = substr( $selector, 1 );
-				
+
 				if ( ! $xpath ) {
 					@$xpath = new \DomXPath( $dom );
 				}
 
 				if ( $selectorType === 'class' ) {
-					$query = '//*[contains(@class, "' . $selector . '")]';
+					$query = '//*[contains(concat(" ",@class," "), "' . $selector . '")]';
 				} else {
 					$query = '//*[@id = "' . $selector . '"]';
 				}
@@ -358,14 +376,6 @@ class RetconHtmlService extends BaseApplicationComponent
 
 					// Remove nodes
 					foreach ( $elements as $element ) {
-						
-						if ( $selectorType === 'class' ) {
-							// The contains directive uses fuzzy matching – make sure we have a solid match for class name
-							$classes = explode( ' ', $element->getAttribute( 'class' ) );
-							if ( ! in_array( $selector, $classes ) ) {
-								continue;
-							}
-						}
 
 						$element->parentNode->removeChild( $element );
 						$numElementsRemoved++;
@@ -417,6 +427,11 @@ class RetconHtmlService extends BaseApplicationComponent
 
 		}
 
+	}
+
+	protected function getHtml( $html )
+	{
+		return TemplateHelper::getRaw( preg_replace( '~<(?:!DOCTYPE|/?(?:html|head|body))[^>]*>\s*~i', '', $html ) ) ?: false;
 	}
 
 }

@@ -43,7 +43,7 @@ class RetconHtmlTwigExtension extends \Twig_Extension
 
 	public function attr( $input, $selectors, $attributes = array(), $overwrite = true )
 	{
-		return is_array( $attributes ) && count( $attributes ) > 0 ? craft()->retconHtml->attr( $input, $selectors, $attributes, $overwrite );
+		return ( is_array( $attributes ) && count( $attributes ) > 0 ) ? craft()->retconHtml->attr( $input, $selectors, $attributes, $overwrite ) : $input;
 	}
 
 	public function lazy( $input, $class = null, $attribute = null )
