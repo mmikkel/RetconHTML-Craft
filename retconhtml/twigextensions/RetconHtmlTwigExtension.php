@@ -41,14 +41,19 @@ class RetconHtmlTwigExtension extends \Twig_Extension
 		return $transform ? craft()->retconHtml->transform( $input, $transform ) : $input;
 	}
 
-	public function attr( $input, $selectors, $attributes = array(), $overwrite = true )
-	{
-		return ( is_array( $attributes ) && count( $attributes ) > 0 ) ? craft()->retconHtml->attr( $input, $selectors, $attributes, $overwrite ) : $input;
-	}
-
 	public function lazy( $input, $class = null, $attribute = null )
 	{
 		return craft()->retconHtml->lazy( $input, $attribute );
+	}
+
+	public function autoAlt( $input, $overwrite = false )
+	{
+		return craft()->retconHtml->autoAlt( $input, $overwrite );
+	}
+
+	public function attr( $input, $selectors, $attributes = array(), $overwrite = true )
+	{
+		return ( is_array( $attributes ) && count( $attributes ) > 0 ) ? craft()->retconHtml->attr( $input, $selectors, $attributes, $overwrite ) : $input;
 	}
 
 	// 'img', '.imageWrapper'

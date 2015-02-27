@@ -235,10 +235,48 @@ class RetconHtmlService extends BaseApplicationComponent
 	}
 
 	/*
+	* Adds filename as alt tag to images missing the latter
+	*
+	*/
+	public function autoAlt( $input, $overwrite = false )
+	{
+
+		@$dom = new \DOMDocument();
+		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', $this->_encoding ) );
+
+		if ( ! $dom || ! @$domImages = $dom->getElementsByTagName( 'img' ) ) {
+			return $input;
+		}
+
+		$numSourcesRewritten = 0;
+
+		foreach ( $domImages as $domImage ) {
+
+			$alt = $domImage->getAttribute( 'alt' );
+
+			if ( ! $alt || strlen( $alt ) === 0 ) {
+				$imageSource = $domImage->getAttribute( 'src' );
+				$imageSourcePathinfo = pathinfo( $imageSource );
+				$domImage->setAttribute( 'alt', $imageSourcePathinfo[ 'filename' ] );
+				$numSourcesRewritten++;
+			}
+
+		}
+
+		// Only bother parsing the HTML if we actually rewrote any sources
+		if ( $numSourcesRewritten > 0 ) {
+			return $this->getHtml( @$dom->saveHTML() ) ?: $input;
+		}
+
+		return $input;
+
+	}
+
+	/*
 	* Adds or replaces attributes
 	*
 	*/
-	public function attr( $input, $selectors, $attributes, $overwrite )
+	public function attr( $input, $selectors, $attributes, $overwrite = true )
 	{
 
 		if ( ! is_array( $selectors ) ) {
