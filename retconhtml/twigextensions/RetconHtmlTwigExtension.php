@@ -36,14 +36,14 @@ class RetconHtmlTwigExtension extends \Twig_Extension
 		);
 	}
 
-	public function transform( $input, $transform = false )
+	public function transform( $input, $transform )
 	{
 		return $transform ? craft()->retconHtml->transform( $input, $transform ) : $input;
 	}
 
-	public function lazy( $input, $class = null, $attribute = null )
+	public function lazy( $input, $className = null, $attributeName = null )
 	{
-		return craft()->retconHtml->lazy( $input, $attribute );
+		return craft()->retconHtml->lazy( $input, $className, $attributeName );
 	}
 
 	public function autoAlt( $input, $overwrite = false )
@@ -53,7 +53,7 @@ class RetconHtmlTwigExtension extends \Twig_Extension
 
 	public function attr( $input, $selectors, $attributes = array(), $overwrite = true )
 	{
-		return ( is_array( $attributes ) && count( $attributes ) > 0 ) ? craft()->retconHtml->attr( $input, $selectors, $attributes, $overwrite ) : $input;
+		return craft()->retconHtml->attr( $input, $selectors, $attributes, $overwrite );
 	}
 
 	public function wrap( $input, $selectors, $wrapper )
@@ -66,10 +66,6 @@ class RetconHtmlTwigExtension extends \Twig_Extension
 		return craft()->retconHtml->unwrap( $input, $selectors );
 	}
 
-	/*
-	* Removes all matching selectors
-	*
-	*/
 	public function remove( $input, $selectors )
 	{
 		return craft()->retconHtml->remove( $input, $selectors );
@@ -77,10 +73,9 @@ class RetconHtmlTwigExtension extends \Twig_Extension
 
 	public function only( $input, $selectors )
 	{
-		return $input;
+		return craft()->retconHtml->only( $input, $selectors );
 	}
 
-	// <p>Something</p> => <span>Something</span>
 	public function change( $input, $selectors, $toTag )
 	{
 		return craft()->retconHtml->change( $input, $selectors, $toTag );

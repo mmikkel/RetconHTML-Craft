@@ -336,9 +336,27 @@ class RetconHtmlService extends BaseApplicationComponent
 			$selectors = array( $selectors );
 		}
 
-		// TODO
+		$doc = new RetconHtmlDocument( $html );
+		$fragment = $doc->createDocumentFragment();
+		
+		foreach ( $selectors as $selector ) {
 
-		return $html;
+			if ( ! $elements = $doc->getElementsBySelector( $selector ) ) {
+				continue;
+			}
+
+			foreach ( $elements as $element ) {
+
+				$fragment->appendChild( $element );
+
+			}
+
+		}
+
+		$body = $doc->getElementsByTagName( 'body')->item( 0 );
+		$body->parentNode->replaceChild( $fragment, $body );
+
+		return $doc->getHtml();
 
 	}
 
