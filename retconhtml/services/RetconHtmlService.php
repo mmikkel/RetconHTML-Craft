@@ -15,50 +15,7 @@ class RetconHtmlService extends BaseApplicationComponent
 {
 
 	protected 	$_allowedTransformExtensions = array( 'jpg', 'png', 'gif' ),
-				$_transforms = null,
-				$_environmentVariables = null,
-				$_settings = null;
-
-
-	public function getSetting( $setting )
-	{
-
-		// Get settings
-		if ( $this->_settings === null ) {
-
-			$plugin = craft()->plugins->getPlugin( 'retconHtml' );
-			$pluginSettings = $plugin->getSettings();
-			$settings = array();
-
-			$settings[ 'baseTransformPath' ] = trim( rtrim( $pluginSettings->baseTransformPath, '/' ) ?: rtrim( $_SERVER[ 'DOCUMENT_ROOT' ], '/' ) );
-			$settings[ 'baseTransformUrl' ] = trim( rtrim( $pluginSettings->baseTransformUrl, '/' ) ?: rtrim( CRAFT_SITE_URL, '/' ) );
-			$settings[ 'encoding' ] = trim( $pluginSettings->encoding ) ?: 'UTF-8';
-
-			if ( strpos( $settings[ 'baseTransformPath' ], '{' ) > -1 || strpos( $settings[ 'baseTransformUrl' ], '{' ) > -1 ) {
-
-				// Get environment variables
-				if ( $this->_environmentVariables === null ) {
-					$this->_environmentVariables = craft()->config->get( 'environmentVariables' );
-				}
-
-				// Replace environment variables
-				if ( is_array( $this->_environmentVariables ) && ! empty( $this->_environmentVariables ) ) {
-					foreach ( $this->_environmentVariables as $key => $value ) {
-						$settings[ 'baseTransformPath' ] = preg_replace( '#/+#','/', str_replace( '{' . $key . '}', $value, $settings[ 'baseTransformPath' ] ) );
-						$settings[ 'baseTransformUrl' ] = preg_replace( '#/+#','/', str_replace( '{' . $key . '}', $value, $settings[ 'baseTransformUrl' ] ) );
-						$settings[ 'baseTransformUrl' ] = str_replace( ':/', '://', $settings[ 'baseTransformUrl' ] );
-					}
-				}
-
-			}
-
-			$this->_settings = $settings;
-
-		}
-
-		return $this->_settings[ $setting ] ?: false;
-
-	}
+				$_transforms = null;
 
 	/*
 	* Apply transform to all images in an HTML block
@@ -69,7 +26,7 @@ class RetconHtmlService extends BaseApplicationComponent
 
 		// Get images from the DOM
 		@$dom = new \DOMDocument();
-		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', $this->getEncoding() ) );
+		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', craft()->retconHtml_helper->getEncoding() ) );
 		if ( ! $dom || ! @$domImages = $dom->getElementsByTagName( 'img' ) ) {
 			return $input;
 		}
@@ -130,8 +87,8 @@ class RetconHtmlService extends BaseApplicationComponent
 		}
 
 		// Get basepaths and URLs
-		$basePath = $this->getSetting( 'baseTransformPath' );
-		$baseUrl = $this->getSetting( 'baseTransformUrl' );
+		$basePath = craft()->retconHtml_helper->getSetting( 'baseTransformPath' );
+		$baseUrl = craft()->retconHtml_helper->getSetting( 'baseTransformUrl' );
 		$host = pathinfo( $baseUrl, PHP_URL_HOST );
 
 		// Transform images and rewrite sources
@@ -229,7 +186,7 @@ class RetconHtmlService extends BaseApplicationComponent
 
 		// Only bother parsing the HTML if we actually rewrote any sources
 		if ( $numSourcesRewritten > 0 ) {
-			return $this->getHtml( @$dom->saveHTML() ) ?: $input;
+			return craft()->retconHtml_helper->getHtml( @$dom->saveHTML() ) ?: $input;
 		}
 
 		return $input;
@@ -244,7 +201,7 @@ class RetconHtmlService extends BaseApplicationComponent
 	{
 
 		@$dom = new \DOMDocument();
-		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', $this->getEncoding() ) );
+		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', craft()->retconHtml_helper->getEncoding() ) );
 
 		if ( ! $dom || ! @$domImages = $dom->getElementsByTagName( 'img' ) ) {
 			return $input;
@@ -252,6 +209,7 @@ class RetconHtmlService extends BaseApplicationComponent
 
 		$attributeName = 'data-' . ( $attributeName ?: 'original' );
 		$className = $className ?: 'lazy';
+		$numSourcesRewritten = 0;
 
 		foreach ( $domImages as $domImage ) {
 			$imageClasses = explode( ' ', $domImage->getAttribute( 'class' ) );
@@ -259,9 +217,14 @@ class RetconHtmlService extends BaseApplicationComponent
 			$domImage->setAttribute( 'class', trim( implode( ' ', $imageClasses ) ) );
 			$domImage->setAttribute( $attributeName, $domImage->getAttribute( 'src' ) );
 			$domImage->setAttribute( 'src', 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' );
+			$numSourcesRewritten++;
 		}
 
-		return $this->getHtml( @$dom->saveHTML() ) ?: $input;
+		if ( $numSourcesRewritten > 0 ) {
+			return craft()->retconHtml_helper->getHtml( @$dom->saveHTML() ) ?: $input;
+		}
+
+		return $input;
 
 	}
 
@@ -273,7 +236,7 @@ class RetconHtmlService extends BaseApplicationComponent
 	{
 
 		@$dom = new \DOMDocument();
-		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', $this->getEncoding() ) );
+		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', craft()->retconHtml_helper->getEncoding() ) );
 
 		if ( ! $dom || ! @$domImages = $dom->getElementsByTagName( 'img' ) ) {
 			return $input;
@@ -296,7 +259,7 @@ class RetconHtmlService extends BaseApplicationComponent
 
 		// Only bother parsing the HTML if we actually rewrote any sources
 		if ( $numSourcesRewritten > 0 ) {
-			return $this->getHtml( @$dom->saveHTML() ) ?: $input;
+			return craft()->retconHtml_helper->getHtml( @$dom->saveHTML() ) ?: $input;
 		}
 
 		return $input;
@@ -315,7 +278,7 @@ class RetconHtmlService extends BaseApplicationComponent
 		}
 
 		@$dom = new \DOMDocument();
-		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', $this->getEncoding() ) );
+		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', craft()->retconHtml_helper->getEncoding() ) );
 
 		if ( ! $dom ) {
 			return $input;
@@ -329,7 +292,7 @@ class RetconHtmlService extends BaseApplicationComponent
 		foreach ( $selectors as $selector ) {
 
 			// Get all matching selectors, and add/replace attributes
-			$selector = $this->getSelector( $selector );
+			$selector = craft()->retconHtml_helper->getSelector( $selector );
 
 			// ID or class
 			if ( $selector->attribute ) {
@@ -384,7 +347,7 @@ class RetconHtmlService extends BaseApplicationComponent
 		}
 
 		if ( $numElementsRewritten > 0 ) {
-			return $this->getHtml( @$dom->saveHTML() ) ?: $input;
+			return craft()->retconHtml_helper->getHtml( @$dom->saveHTML() ) ?: $input;
 		}
 
 		return $input;
@@ -402,7 +365,7 @@ class RetconHtmlService extends BaseApplicationComponent
 		}
 
 		@$dom = new \DOMDocument();
-		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', $this->getEncoding() ) );
+		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', craft()->retconHtml_helper->getEncoding() ) );
 
 		if ( ! $dom ) {
 			return $input;
@@ -416,7 +379,7 @@ class RetconHtmlService extends BaseApplicationComponent
 		foreach ( $selectors as $selector ) {
 
 			// Get all matching selectors, and remove them
-			$selector = $this->getSelector( $selector );
+			$selector = craft()->retconHtml_helper->getSelector( $selector );
 
 			if ( $selector->attribute ) {
 
@@ -456,7 +419,7 @@ class RetconHtmlService extends BaseApplicationComponent
 		}
 
 		if ( $numElementsRemoved > 0 ) {
-			return $this->getHtml( @$dom->saveHTML() ) ?: $input;
+			return craft()->retconHtml_helper->getHtml( @$dom->saveHTML() ) ?: $input;
 		}
 
 		return $input;
@@ -475,7 +438,7 @@ class RetconHtmlService extends BaseApplicationComponent
 		}
 
 		@$dom = new \DOMDocument();
-		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', $this->getEncoding() ) );
+		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', craft()->retconHtml_helper->getEncoding() ) );
 		@$dom->normalize();
 
 		if ( ! $dom ) {
@@ -490,7 +453,7 @@ class RetconHtmlService extends BaseApplicationComponent
 		foreach ( $selectors as $selector ) {
 
 			// Get all matching selectors, and add/replace attributes
-			$selector = $this->getSelector( $selector );
+			$selector = craft()->retconHtml_helper->getSelector( $selector );
 
 			// ID or class
 			if ( $selector->attribute ) {
@@ -541,7 +504,7 @@ class RetconHtmlService extends BaseApplicationComponent
 		}
 
 		if ( $numElementsRewritten > 0 ) {
-			return $this->getHtml( @$dom->saveHTML() ) ?: $input;
+			return craft()->retconHtml_helper->getHtml( @$dom->saveHTML() ) ?: $input;
 		}
 
 		return $input;
@@ -549,54 +512,80 @@ class RetconHtmlService extends BaseApplicationComponent
 	}
 
 	/*
-	* Parse selector string and return components
+	* Wrap stuff in other stuff
 	*
 	*/
-	protected function getSelector( $selector )
+	public function wrap( $input, $selectors, $wrapper )
 	{
 
-		$delimiters = array( 'id' => '#', 'class' => '.' );
+		if ( ! is_array( $selectors ) ) {
+			$selectors = array( $selectors );
+		}
 
-		$selectorString = preg_replace( '/\s+/', '', $selector );
+		@$dom = new \DOMDocument();
+		@$dom->loadHTML( mb_convert_encoding( $input, 'HTML-ENTITIES', craft()->retconHtml_helper->getEncoding() ) );
+		@$dom->normalize();
 
-		$selector = array(
-			'tag' => $selector,
-			'attribute' => false,
-			'attributeValue' => false,
-		);
+		if ( ! $dom ) {
+			return $input;
+		}
 
-		// Check for class or ID
-		foreach ( $delimiters as $attribute => $indicator ) {
+		@$dom->preserveWhiteSpace = false;
+		$xpath = null;
 
-			if ( strpos( $selectorString, $indicator ) > -1 ) {
+		$numElementsRewritten = 0;
 
-				$temp = explode( $indicator, $selectorString );
+		// Get wrapper
+		$wrapper = craft()->retconHtml_helper->getSelector( $wrapper );
+		$wrapperNode = @$dom->createElement( $wrapper->tag );
+		if ( $wrapper->attribute ) {
+			$wrapperNode->setAttribute( $wrapper->attribute, $wrapper->attributeValue );
+		}
 
-				$selector[ 'tag' ] = $temp[ 0 ] !== '' ? $temp[ 0 ] : '*';
+		foreach ( $selectors as $selector ) {
 
-				if ( ( $attributeValue = $temp[ count( $temp ) - 1 ] ) !== '' ) {
-					$selector[ 'attribute' ] = $attribute;
-					$selector[ 'attributeValue' ] = $attributeValue;
+			// Get all matching selectors, and add/replace attributes
+			$selector = craft()->retconHtml_helper->getSelector( $selector );
+
+			// ID or class
+			if ( $selector->attribute ) {
+
+				if ( $xpath === null ) {
+					@$xpath = new \DomXPath( $dom );
 				}
 
-				break;
+				$query = '//' . $selector->tag . '[contains(concat(" ",@' . $selector->attribute . '," "), "' . $selector->attributeValue . '")]';
+				$elements = @$xpath->query( $query );
+
+
+			} else {
+
+				$elements = @$dom->getElementsByTagName( $selector->tag );
+
+			}
+
+			if ( ! isset( $elements ) || $elements->length === 0 ) {
+				continue;
+			}
+
+			foreach ( $elements as $element ) {
+
+				$wrapperClone = $wrapperNode->cloneNode();
+				$element->parentNode->replaceChild( $wrapperClone, $element );
+				$wrapperClone->appendChild( $element );
+
+				$numElementsRewritten++;
 
 			}
 
 		}
 
-		return (object) $selector;
+		if ( $numElementsRewritten > 0 ) {
+			return craft()->retconHtml_helper->getHtml( @$dom->saveHTML() ) ?: $input;
+		}
 
-	}
+		return $input;
 
-	protected function getEncoding()
-	{
-		return trim( $this->getSetting( 'encoding' ) );
-	}
-
-	protected function getHtml( $html )
-	{
-		return TemplateHelper::getRaw( preg_replace( '~<(?:!DOCTYPE|/?(?:html|head|body))[^>]*>\s*~i', '', $html ) ) ?: false;
 	}
 
 }

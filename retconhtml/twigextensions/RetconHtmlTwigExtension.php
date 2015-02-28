@@ -60,10 +60,9 @@ class RetconHtmlTwigExtension extends \Twig_Extension
 
 	// 'img', '.imageWrapper'
 	// '.something', div
-	public function wrap( $input, $selectorsToWrap, $wrapper )
+	public function wrap( $input, $selectors, $wrapper )
 	{
-		// Wrap <a> in <div class="foo" />
-		return $input;
+		return craft()->retconHtml->wrap( $input, $selectors, $wrapper );
 	}
 
 	public function unwrap( $input, $selectors, $depth = 1 )
