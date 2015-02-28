@@ -81,6 +81,7 @@ class RetconHtmlPlugin extends BasePlugin
 	public function init ()
     {
 		parent::init();
+		Craft::import( 'plugins.retconHtml.library.*' );
 	}
 
 }

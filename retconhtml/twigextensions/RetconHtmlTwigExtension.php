@@ -12,9 +12,7 @@ class RetconHtmlTwigExtension extends \Twig_Extension
         return 'Retcon HTML';
     }
 
-    // TODO : make selectors like p.className possible
-
-	public function getFilters()
+    public function getFilters()
 	{
 		return array(
 			// Apply an image transform to all <img> tags
@@ -25,15 +23,15 @@ class RetconHtmlTwigExtension extends \Twig_Extension
 			'retconAutoAlt' => new Twig_Filter_Method( $this, 'autoAlt' ),
 			// Add (or overwrite) attributes for selector
 			'retconAttr' => new Twig_Filter_Method( $this, 'attr' ),
-			// Wrap selectors in other selectors!
+			// Wrap stuff in other stuff!
 			'retconWrap' => new Twig_Filter_Method( $this, 'wrap' ),
-			// Unwrap seleectors by negative depth
+			// Unwrap stuff
 			'retconUnwrap' => new Twig_Filter_Method( $this, 'unwrap' ),
 			// Remove the matching selector(s)!
 			'retconRemove' => new Twig_Filter_Method( $this, 'remove' ),
 			// Remove *everything but* the matching selector(s)!
 			'retconOnly' => new Twig_Filter_Method( $this, 'only' ),
-			// Change tag type. Oh man
+			// Change tag type
 			'retconChangeTag' => new Twig_Filter_Method( $this, 'change' ),
 		);
 	}
@@ -58,16 +56,14 @@ class RetconHtmlTwigExtension extends \Twig_Extension
 		return ( is_array( $attributes ) && count( $attributes ) > 0 ) ? craft()->retconHtml->attr( $input, $selectors, $attributes, $overwrite ) : $input;
 	}
 
-	// 'img', '.imageWrapper'
-	// '.something', div
 	public function wrap( $input, $selectors, $wrapper )
 	{
 		return craft()->retconHtml->wrap( $input, $selectors, $wrapper );
 	}
 
-	public function unwrap( $input, $selectors, $depth = 1 )
+	public function unwrap( $input, $selectors )
 	{
-		return $input;
+		return craft()->retconHtml->unwrap( $input, $selectors );
 	}
 
 	/*

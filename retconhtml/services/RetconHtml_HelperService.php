@@ -59,15 +59,15 @@ class RetconHtml_HelperService extends BaseApplicationComponent
 	}
 
 	/*
-	* Parse selector string and return components
+	* Parse selector string and return object with tagname, attribute and attribute value
 	*
 	*/
-	public function getSelector( $selector )
+	public function getSelectorObject( $selector )
 	{
-
+		
 		$delimiters = array( 'id' => '#', 'class' => '.' );
 
-		$selectorString = preg_replace( '/\s+/', '', $selector );
+		$selectorStr = preg_replace( '/\s+/', '', $selector );
 
 		$selector = array(
 			'tag' => $selector,
@@ -78,9 +78,9 @@ class RetconHtml_HelperService extends BaseApplicationComponent
 		// Check for class or ID
 		foreach ( $delimiters as $attribute => $indicator ) {
 
-			if ( strpos( $selectorString, $indicator ) > -1 ) {
+			if ( strpos( $selectorStr, $indicator ) > -1 ) {
 
-				$temp = explode( $indicator, $selectorString );
+				$temp = explode( $indicator, $selectorStr );
 
 				$selector[ 'tag' ] = $temp[ 0 ] !== '' ? $temp[ 0 ] : '*';
 
@@ -103,11 +103,6 @@ class RetconHtml_HelperService extends BaseApplicationComponent
 	{
 		$encoding = $this->getSetting( 'encoding' );
 		return $encoding ? trim( $encoding ) : false;
-	}
-
-	public function getHtml( $html )
-	{
-		return TemplateHelper::getRaw( preg_replace( '~<(?:!DOCTYPE|/?(?:html|head|body))[^>]*>\s*~i', '', $html ) ) ?: false;
 	}
 
 }
