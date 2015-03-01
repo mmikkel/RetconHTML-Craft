@@ -1,5 +1,15 @@
-<?php
-namespace Craft;
+<?php namespace Craft;
+
+/**
+ * Got WYSIWYG? Retcon offers convenient Twig filters for easy HTML rewriting.
+ *
+ * @author      Mats Mikkel Rummelhoff <http://mmikkel.no>
+ * @package     Retcon HTML
+ * @since       Craft 2.3
+ * @copyright   Copyright (c) 2015, Mats Mikkel Rummelhoff
+ * @license     http://opensource.org/licenses/mit-license.php MIT License
+ * @link        https://github.com/mmikkel/RetconHtml-Craft
+ */
 
 use Twig_Extension;
 use Twig_Filter_Method;
@@ -15,70 +25,98 @@ class RetconHtmlTwigExtension extends \Twig_Extension
     public function getFilters()
 	{
 		return array(
+			
+			// Catch-all filter
+			'retcon' => new Twig_Filter_Method( $this, 'retcon' ),
+			
 			// Apply an image transform to all <img> tags
 			'retconTransform' => new Twig_Filter_Method( $this, 'transform' ),
+			
 			// Rewrite <img> tags for lazy loading
 			'retconLazy' => new Twig_Filter_Method( $this, 'lazy' ),
+			
 			// Add automatic alt tags to images
 			'retconAutoAlt' => new Twig_Filter_Method( $this, 'autoAlt' ),
+			
 			// Add (or overwrite) attributes for selector
 			'retconAttr' => new Twig_Filter_Method( $this, 'attr' ),
+			
 			// Wrap stuff in other stuff!
 			'retconWrap' => new Twig_Filter_Method( $this, 'wrap' ),
+			
 			// Unwrap stuff
 			'retconUnwrap' => new Twig_Filter_Method( $this, 'unwrap' ),
+			
 			// Remove the matching selector(s)!
 			'retconRemove' => new Twig_Filter_Method( $this, 'remove' ),
+			
 			// Remove *everything but* the matching selector(s)!
 			'retconOnly' => new Twig_Filter_Method( $this, 'only' ),
+			
 			// Change tag type
-			'retconChangeTag' => new Twig_Filter_Method( $this, 'change' ),
+			'retconChange' => new Twig_Filter_Method( $this, 'change' ),
+
+			// Inject stuff inside one or several containers
+			'retconInject' => new Twig_Filter_Method( $this, 'inject' ),
+
 		);
 	}
 
-	public function transform( $input, $transform )
+	public function retcon()
 	{
-		return $transform ? craft()->retconHtml->transform( $input, $transform ) : $input;
+		$args = func_get_args();
+		$html = array_shift( $args );	
+		return craft()->retconHtml->retcon( $html, $args );
 	}
 
-	public function lazy( $input, $className = null, $attributeName = null )
+	public function transform( $html, $transform )
 	{
-		return craft()->retconHtml->lazy( $input, $className, $attributeName );
+		return craft()->retconHtml->transform( $html, $transform );
 	}
 
-	public function autoAlt( $input, $overwrite = false )
+	public function lazy( $html, $className = null, $attributeName = null )
 	{
-		return craft()->retconHtml->autoAlt( $input, $overwrite );
+		return craft()->retconHtml->lazy( $html, $className, $attributeName );
 	}
 
-	public function attr( $input, $selectors, $attributes = array(), $overwrite = true )
+	public function autoAlt( $html, $overwrite = false )
 	{
-		return craft()->retconHtml->attr( $input, $selectors, $attributes, $overwrite );
+		return craft()->retconHtml->autoAlt( $html, $overwrite );
 	}
 
-	public function wrap( $input, $selectors, $wrapper )
+	public function attr( $html, $selectors, $attributes, $overwrite = true )
 	{
-		return craft()->retconHtml->wrap( $input, $selectors, $wrapper );
+		return craft()->retconHtml->attr( $html, $selectors, $attributes, $overwrite );
 	}
 
-	public function unwrap( $input, $selectors )
+	public function wrap( $html, $selectors, $wrapper )
 	{
-		return craft()->retconHtml->unwrap( $input, $selectors );
+		return craft()->retconHtml->wrap( $html, $selectors, $wrapper );
 	}
 
-	public function remove( $input, $selectors )
+	public function unwrap( $html, $selectors )
 	{
-		return craft()->retconHtml->remove( $input, $selectors );
+		return craft()->retconHtml->unwrap( $html, $selectors );
 	}
 
-	public function only( $input, $selectors )
+	public function remove( $html, $selectors )
 	{
-		return craft()->retconHtml->only( $input, $selectors );
+		return craft()->retconHtml->remove( $html, $selectors );
 	}
 
-	public function change( $input, $selectors, $toTag )
+	public function only( $html, $selectors )
 	{
-		return craft()->retconHtml->change( $input, $selectors, $toTag );
+		return craft()->retconHtml->only( $html, $selectors );
+	}
+
+	public function change( $html, $selectors, $toTag )
+	{
+		return craft()->retconHtml->change( $html, $selectors, $toTag );
+	}
+
+	public function inject( $html, $selectors, $toInject )
+	{
+		return craft()->retconHtml->inject( $html, $selectors, $toInject );
 	}
 
 }

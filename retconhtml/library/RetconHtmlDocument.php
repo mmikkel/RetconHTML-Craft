@@ -22,6 +22,8 @@ class RetconHtmlDocument extends \DOMDocument
 		
 		parent::__construct();
 
+		libxml_use_internal_errors( true ); // Might make this a setting in the future
+
 		$this->_outputEncoding = craft()->retconHtml_helper->getEncoding();
 		
 		if ( $html ) {
@@ -47,7 +49,7 @@ class RetconHtmlDocument extends \DOMDocument
 
 		} else {
 
-			$elements = $doc->getElementsByTagName( $selector->tag );
+			$elements = $this->getElementsByTagName( $selector->tag );
 
 		}
 

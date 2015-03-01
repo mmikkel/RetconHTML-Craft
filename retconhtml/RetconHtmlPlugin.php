@@ -60,16 +60,9 @@ class RetconHtmlPlugin extends BasePlugin
 
     public function getSettingsHtml()
     {
-
-        $definedSettings = $this->defineSettings();
-
-        return craft()->templates->render( 'retconHtml/settings', array(
-            'settings' => $this->getSettings(),
-            'placeholderBasePath' => '{basePath}/something/something',
-            'placeholderBaseUrl' => '{siteUrl}/something/something',
-            'placeholderEncoding' => 'UTF-8',
+		return craft()->templates->render( 'retconHtml/settings', array(
+            'settings' => $this->getSettings()
         ) );
-
     }
 
 	public function addTwigExtension()

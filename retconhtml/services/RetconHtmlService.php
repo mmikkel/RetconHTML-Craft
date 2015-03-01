@@ -18,7 +18,52 @@ class RetconHtmlService extends BaseApplicationComponent
 				$_transforms = null;
 
 	/*
-	* Apply transform to all images in an HTML block
+	* retcon
+	*
+	* Catch-all wrapping all other methods
+	*
+	* @html String
+	*
+	* @args Mixed
+	*
+	*/
+	public function retcon( $html, $args )
+	{
+
+		if ( empty( $args ) ) {
+			throw new Exception( Craft::t( "No filter method or callbacks defined" ) );
+			return $html;
+		}
+
+		$first = array_shift( $args );
+		$calls = is_array( $first ) ? $first : array( $first => $args );
+
+		foreach ( $calls as $filter => $args ) {
+
+			$args = is_array( $args ) ? $args : array( $args );
+
+			if ( ! method_exists( $this, $filter ) ) {
+				throw new Exception( Craft::t( "Undefined filter method {$filter}" ) );
+				return $html;
+			}
+
+			$html = call_user_func_array( array( $this, $filter ), array_merge( array( $html ), $args ) );
+
+		}
+
+		return $html;
+
+	}
+
+	/*
+	* transform
+	*
+	* Apply an image transform to all images.
+	*
+	* @html String
+	*
+	* @transform Mixed 
+	* Named (String) or inline transform (Array)
 	*
 	*/
 	public function transform( $html, $transform )
@@ -54,6 +99,10 @@ class RetconHtmlService extends BaseApplicationComponent
 			// Nah.
 			return $html;
 
+		}
+
+		if ( ! $transform ) {
+			return $html;
 		}
 
 		// Get transform attributes
@@ -183,10 +232,19 @@ class RetconHtmlService extends BaseApplicationComponent
 	}
 
 	/*
-	* Rewrites img tags for lazy loading
+	* lazy
+	*
+	* Replaces the src attribute with a base64 encoded, transparent gif
+	* The original source will be retained in a data attribute
+	*
+	* @className String
+	* Class for lazy images (optional, default "lazy")
+	*
+	* @attributeName String
+	* Name of data attribute for original source (optional, default "original")
 	*
 	*/
-	public function lazy( $html, $className = false, $attributeName = false )
+	public function lazy( $html, $className = null, $attributeName = null )
 	{
 
 		$doc = new RetconHtmlDocument( $html );
@@ -211,7 +269,12 @@ class RetconHtmlService extends BaseApplicationComponent
 	}
 
 	/*
-	* Adds filename as alt tag to images missing the latter
+	* autoAlt
+	*
+	* Adds filename as alt attribute for images missing alternative text. Optionally overwrite alt attribute for all images
+	*
+	* @overwrite Boolean
+	* Overwrite existing alt attributes (optional, default false)
 	*
 	*/
 	public function autoAlt( $html, $overwrite = false )
@@ -223,8 +286,6 @@ class RetconHtmlService extends BaseApplicationComponent
 			return $html;
 		}
 
-		$numSourcesRewritten = 0;
-
 		foreach ( $docImages as $docImage ) {
 
 			$alt = $docImage->getAttribute( 'alt' );
@@ -233,7 +294,6 @@ class RetconHtmlService extends BaseApplicationComponent
 				$imageSource = $docImage->getAttribute( 'src' );
 				$imageSourcePathinfo = pathinfo( $imageSource );
 				$docImage->setAttribute( 'alt', $imageSourcePathinfo[ 'filename' ] );
-				$numSourcesRewritten++;
 			}
 
 		}
@@ -243,15 +303,24 @@ class RetconHtmlService extends BaseApplicationComponent
 	}
 
 	/*
-	* Adds or replaces attributes
+	* attr
+	*
+	* Adds or replaces one or many attributes for one or many selectors
+	*
+	* @selectors Mixed
+	* String or Array of strings
+	*
+	* @attributes Array
+	* Associative array of attribute names and values
+	*
+	* @overwrite Boolean
+	* Overwrites existing attribute values (optional, true)
 	*
 	*/
 	public function attr( $html, $selectors, $attributes, $overwrite = true )
 	{
 
-		if ( ! is_array( $selectors ) ) {
-			$selectors = array( $selectors );
-		}
+		$selectors = is_array( $selectors ) ? $selectors : array( $selectors );
 
 		$doc = new RetconHtmlDocument( $html );
 
@@ -296,15 +365,18 @@ class RetconHtmlService extends BaseApplicationComponent
 	}
 
 	/*
-	* Removes all matching selectors
+	* remove
+	*
+	* Remove all elements matching given selector(s)
+	*
+	* @selectors Mixed
+	* String or Array of strings
 	*
 	*/
 	public function remove( $html, $selectors )
 	{
 
-		if ( ! is_array( $selectors ) ) {
-			$selectors = array( $selectors );
-		}
+		$selectors = is_array( $selectors ) ? $selectors : array( $selectors );
 
 		$doc = new RetconHtmlDocument( $html );
 		
@@ -315,7 +387,10 @@ class RetconHtmlService extends BaseApplicationComponent
 				continue;
 			}
 
-			foreach ( $elements as $element ) {
+			$numElements = $elements->length;
+
+			for ( $i = $numElements - 1; $i >= 0; --$i ) {
+				$element = $elements->item( $i );
 				$element->parentNode->removeChild( $element );
 			}
 
@@ -326,15 +401,18 @@ class RetconHtmlService extends BaseApplicationComponent
 	}
 
 	/*
-	* Extracts all matching selectors
+	* only
+	*
+	* Remove everything except elements matching given selector(s)
+	*
+	* @selectors Mixed
+	* String or Array of strings
 	*
 	*/
 	public function only( $html, $selectors )
 	{
 
-		if ( ! is_array( $selectors ) ) {
-			$selectors = array( $selectors );
-		}
+		$selectors = is_array( $selectors ) ? $selectors : array( $selectors );
 
 		$doc = new RetconHtmlDocument( $html );
 		$fragment = $doc->createDocumentFragment();
@@ -353,7 +431,7 @@ class RetconHtmlService extends BaseApplicationComponent
 
 		}
 
-		$body = $doc->getElementsByTagName( 'body')->item( 0 );
+		$body = $doc->getElementsByTagName( 'body' )->item( 0 );
 		$body->parentNode->replaceChild( $fragment, $body );
 
 		return $doc->getHtml();
@@ -361,15 +439,20 @@ class RetconHtmlService extends BaseApplicationComponent
 	}
 
 	/*
-	* Change tag types
+	* change
 	*
+	* Changes tag type/name for given selector(s)
+	*
+	* @selectors Mixed
+	* String or Array of strings
+	*
+	* @toTag String
+	* Tag type matching elements will be converted to, e.g. "span"
 	*/
 	public function change( $html, $selectors, $toTag )
 	{
 
-		if ( ! is_array( $selectors ) ) {
-			$selectors = array( $selectors );
-		}
+		$selectors = is_array( $selectors ) ? $selectors : array( $selectors );
 
 		$doc = new RetconHtmlDocument( $html );
 		
@@ -380,7 +463,11 @@ class RetconHtmlService extends BaseApplicationComponent
 				continue;
 			}
 
-			foreach ( $elements as $element ) {
+			$numElements = $elements->length;
+
+			for ( $i = $numElements - 1; $i >= 0; --$i ) {
+
+				$element = $elements->item( $i );
 
 				// Perform a deep copy of the element, changing its tag name
 				$children = array();
@@ -410,20 +497,27 @@ class RetconHtmlService extends BaseApplicationComponent
 	}
 
 	/*
-	* Wrap stuff in other stuff
+	* wrap
+	*
+	* Wraps one or many selectors
+	*
+	* @selectors Mixed
+	* String or Array of strings
+	*
+	* @wrapper String
+	* Element to create as wrapper, e.g. "div.wrapper"
 	*
 	*/
 	public function wrap( $html, $selectors, $wrapper )
 	{
 
-		if ( ! is_array( $selectors ) ) {
-			$selectors = array( $selectors );
-		}
+		$selectors = is_array( $selectors ) ? $selectors : array( $selectors );
 
-		$doc = new RetconHtmlDocument();
+		$doc = new RetconHtmlDocument( $html );
 		
 		// Get wrapper
 		$wrapper = craft()->retconHtml_helper->getSelectorObject( $wrapper );
+		$wrapper->tag = $wrapper->tag === '*' ? 'div' : $wrapper->tag;
 		$wrapperNode = $doc->createElement( $wrapper->tag );
 		
 		if ( $wrapper->attribute ) {
@@ -439,7 +533,7 @@ class RetconHtmlService extends BaseApplicationComponent
 
 			foreach ( $elements as $element ) {
 
-				$wrapperClone = $wrapperNode->cloneNode();
+				$wrapperClone = $wrapperNode->cloneNode( true );
 				$element->parentNode->replaceChild( $wrapperClone, $element );
 				$wrapperClone->appendChild( $element );
 
@@ -452,15 +546,18 @@ class RetconHtmlService extends BaseApplicationComponent
 	}
 
 	/*
-	* Remove parent nodes, optional depth
+	* unwrap
+	*
+	* Removes the parent of given selector(s), retaining all child nodes
+	*
+	* @selectors Mixed
+	* String or Array of strings
 	*
 	*/
 	public function unwrap( $html, $selectors )
 	{
 
-		if ( ! is_array( $selectors ) ) {
-			$selectors = array( $selectors );
-		}
+		$selectors = is_array( $selectors ) ? $selectors : array( $selectors );
 
 		$doc = new RetconHtmlDocument( $html );
 		
@@ -482,6 +579,61 @@ class RetconHtmlService extends BaseApplicationComponent
 				}
 
 				$parentNode->parentNode->replaceChild( $fragment, $parentNode );
+
+			}
+
+		}
+
+		return $doc->getHtml();
+
+	}
+
+	/*
+	* inject
+	*
+	* Injects string value into all elements matching given selector(s)
+	*
+	* @selectors Mixed
+	* String or Array of strings
+	*
+	* @toInject String
+	* Content to inject
+	*
+	*/
+	public function inject( $html, $selectors, $toInject )
+	{
+
+		$selectors = is_array( $selectors ) ? $selectors : array( $selectors );
+
+		$doc = new RetconHtmlDocument( $html );
+
+		// What are we trying to inject, exactly?
+		if ( preg_match( "/<[^<]+>/", $toInject, $matches ) != 0 ) {
+			
+			// Injected content is HTML
+			$fragmentDoc = new RetconHtmlDocument( '<div id="injectWrapper">' . $toInject . '</div>' );
+			$injectNode = $fragmentDoc->getElementById( 'injectWrapper' )->childNodes->item( 0 );
+
+		} else {
+			
+			$injectNode = $doc->createTextNode( "{$toInject}" );
+
+		}
+		
+		foreach ( $selectors as $selector ) {
+
+			// Get all matching selectors, and add/replace attributes
+			if ( ! $elements = $doc->getElementsBySelector( $selector ) ) {
+				continue;
+			}
+
+			foreach ( $elements as $element ) {
+
+				if ( isset( $fragmentDoc ) ) {
+					$element->appendChild( $doc->importNode( $injectNode->cloneNode( true ), true ) );
+				} else {
+					$element->appendChild( $injectNode->cloneNode( true ) );
+				}
 
 			}
 
