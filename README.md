@@ -16,6 +16,8 @@ Ever have a client put 4 MB PNG files in their Redactor fields, failing to apply
 
 ## Basic usage
 
+_Please see the [Wiki page](https://github.com/mmikkel/RetconHTML-Craft/wiki) for documentation, featureset overview and code examples._
+
 _Retcon HTML_ uses [DOMDocument](http://php.net/manual/en/class.domdocument.php) to rewrite HTML. It includes a series of different methods, exposed as Twig filters:
 
 ```twig
