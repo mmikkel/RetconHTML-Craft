@@ -66,4 +66,9 @@ class RetconHtmlVariable
 		return craft()->retconHtml->change( $html, $selectors, $toTag );
 	}
 
+	public function inject( $html, $selectors, $toInject )
+	{
+		return craft()->retconHtml->inject( $html, $selectors, $toInject );
+	}
+
 }
