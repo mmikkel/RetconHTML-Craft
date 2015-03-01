@@ -28,7 +28,7 @@ All methods, however, can also be called as template methods:
 {{ craft.retconHtml.transform( entry.body, 'someImageTransform' ) }}
 ```
 
-...or as through a Recton HTML service, if you ever want to use it in your PHP:
+...or through the Retcon HTML service, if you ever want to use it in your PHP:
 
 ```php
 <?php echo craft()->retconHtml->transform( $entry->body, 'someImageTransform' ); ?>
