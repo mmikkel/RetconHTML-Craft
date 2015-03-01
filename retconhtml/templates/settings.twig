@@ -1,6 +1,8 @@
 {% import '_includes/forms' as forms %}
 
-<h2>Image transforms</h2>
+<h2>Settings</h2>
+
+<h3>Image transforms</h3>
 
 <p class="instructions">
 	By default, Retcon HTML will store all transformed images to directories relative to your public basepath.<br/>If this doesn't float your boat, you can set a different basepath and URL below.
@@ -34,7 +36,7 @@
 
 </div>
 
-<h2>Other settings</h2>
+<h3>Other settings</h3>
 
 <div class="field" id="encoding-field">
 
@@ -52,3 +54,26 @@
 </div>
 
 <hr />
+
+<div class="retcon-about">
+
+	<h2>About Retcon HTML v. {{ craft.retconHtml.getPlugin.getVersion }}</h2>
+
+	<p><em>Retcon HTML offers a series of convenient Twig filters for manipulating HTML content.</em></p>
+
+	<h3>Documentation & support</h3>
+	<p>See Retcon HTML's <a href="{{ craft.retconHtml.getPlugin.getPluginUrl }}/wiki" target="_blank">Wiki page at GitHub</a> for documentation and examples.</p>
+
+	<h3>Disclaimer</h3>
+	<p>Retcon HTML is provided free of charge. The author is not responsible for data loss or any other problems resulting from the use of this plugin.<br/>Please report any bugs, feature requests or other issues <a href="{{ craft.dashCols.getPluginUrl }}">here</a>. As Retcon HTML is a hobby project, no promises are made regarding response time, feature implementations or bug amendments.</p>
+
+	<p><strong>Pull requests are very welcome!</strong></p>
+
+	<hr/>
+
+	<h4>Changelog</h4>
+
+	<h5>v. 1.0</h5>
+	<p><em>Initial public release</em></p>
+
+</div>

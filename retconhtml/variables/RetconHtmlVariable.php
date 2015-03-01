@@ -14,13 +14,23 @@
 class RetconHtmlVariable
 {
 
+	protected $_plugin = null;
+
+	public function getPlugin()
+	{
+		if ( $this->_plugin === null ) {
+			$this->_plugin = craft()->plugins->getPlugin( 'retconHtml' );
+		}
+		return $this->_plugin;
+	}
+
 	public function retcon()
 	{
 		$args = func_get_args();
 		$html = array_shift( $args );	
 		return craft()->retconHtml->retcon( $html, $args );
 	}
-	
+
 	public function transform( $html, $transform )
 	{
 		return craft()->retconHtml->transform( $html, $transform );
@@ -66,9 +76,14 @@ class RetconHtmlVariable
 		return craft()->retconHtml->change( $html, $selectors, $toTag );
 	}
 
-	public function inject( $html, $selectors, $toInject )
+	public function inject( $html, $selectors, $toInject, $overwrite = false )
 	{
-		return craft()->retconHtml->inject( $html, $selectors, $toInject );
+		return craft()->retconHtml->inject( $html, $selectors, $toInject, $overwrite );
+	}
+
+	public function hTagCorrect( $html, $startAt = 'h1' )
+	{
+		return craft()->retconHtml->hTagCorrect( $html, $startAt );
 	}
 
 }

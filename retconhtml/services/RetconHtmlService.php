@@ -35,12 +35,13 @@ class RetconHtmlService extends BaseApplicationComponent
 			return $html;
 		}
 
-		$first = array_shift( $args );
-		$calls = is_array( $first ) ? $first : array( $first => $args );
+		$calls = is_array( $args[ 0 ] ) ? $args[ 0 ] : array( $args );
 
-		foreach ( $calls as $filter => $args ) {
+		foreach ( $calls as $call ) {
 
-			$args = is_array( $args ) ? $args : array( $args );
+			$args = is_array( $call ) ? $call : array( $call );
+
+			$filter = array_shift( $args );
 
 			if ( ! method_exists( $this, $filter ) ) {
 				throw new Exception( Craft::t( "Undefined filter method {$filter}" ) );
@@ -135,6 +136,7 @@ class RetconHtmlService extends BaseApplicationComponent
 		// Get basepaths and URLs
 		$basePath = craft()->retconHtml_helper->getSetting( 'baseTransformPath' );
 		$baseUrl = craft()->retconHtml_helper->getSetting( 'baseTransformUrl' );
+		$siteUrl = rtrim( CRAFT_SITE_URL, '/' );
 		$host = pathinfo( $baseUrl, PHP_URL_HOST );
 
 		// Transform images and rewrite sources
@@ -156,6 +158,8 @@ class RetconHtmlService extends BaseApplicationComponent
 				// Non-local images not supported yet
 				continue;
 			}
+
+			$useAbsoluteUrl = $baseUrl !== $siteUrl || strpos( $imageUrl, 'http' ) > -1 ? true : false;
 
 			// Build filename/path
 			$imageTransformedFilename = $imagePathInfo[ 'filename' ] . '.' . ( $transformFormat ?: $imagePathInfo[ 'extension' ] );
@@ -213,7 +217,7 @@ class RetconHtmlService extends BaseApplicationComponent
 			}
 
 			// Phew! Now where's that src attribute...
-			$imageTransformedUrl = str_replace( $basePath, $baseUrl, $imageTransformedPath );
+			$imageTransformedUrl = str_replace( $basePath, ( $useAbsoluteUrl ? $baseUrl : '' ), $imageTransformedPath );
 
 			$docImage->setAttribute( 'src', $imageTransformedUrl );
 
@@ -600,7 +604,7 @@ class RetconHtmlService extends BaseApplicationComponent
 	* Content to inject
 	*
 	*/
-	public function inject( $html, $selectors, $toInject )
+	public function inject( $html, $selectors, $toInject, $overwrite = false )
 	{
 
 		$selectors = is_array( $selectors ) ? $selectors : array( $selectors );
@@ -609,15 +613,11 @@ class RetconHtmlService extends BaseApplicationComponent
 
 		// What are we trying to inject, exactly?
 		if ( preg_match( "/<[^<]+>/", $toInject, $matches ) != 0 ) {
-			
 			// Injected content is HTML
 			$fragmentDoc = new RetconHtmlDocument( '<div id="injectWrapper">' . $toInject . '</div>' );
 			$injectNode = $fragmentDoc->getElementById( 'injectWrapper' )->childNodes->item( 0 );
-
 		} else {
-			
-			$injectNode = $doc->createTextNode( "{$toInject}" );
-
+			$textNode = $doc->createTextNode( "{$toInject}" );
 		}
 		
 		foreach ( $selectors as $selector ) {
@@ -629,10 +629,23 @@ class RetconHtmlService extends BaseApplicationComponent
 
 			foreach ( $elements as $element ) {
 
-				if ( isset( $fragmentDoc ) ) {
-					$element->appendChild( $doc->importNode( $injectNode->cloneNode( true ), true ) );
+				if ( ! $overwrite ) {
+					
+					if ( isset( $injectNode ) ) {
+						$element->appendChild( $doc->importNode( $injectNode->cloneNode( true ), true ) );
+					} else {
+						$element->appendChild( $textNode->cloneNode() );
+					}
+
 				} else {
-					$element->appendChild( $injectNode->cloneNode( true ) );
+
+					if ( isset( $injectNode ) ) {
+						$element->nodeValue = "";
+						$element->appendChild( $doc->importNode( $injectNode->cloneNode( true ), true ) );
+					} else {
+						$element->nodeValue = $toInject;
+					}
+
 				}
 
 			}
@@ -641,6 +654,17 @@ class RetconHtmlService extends BaseApplicationComponent
 
 		return $doc->getHtml();
 
+	}
+
+	/*
+	* hTagCorrect
+	* 
+	* 
+	*/
+	public function hTagCorrect( $html, $startAt = 'h1' )
+	{
+		// TODO
+		return $html;
 	}
 
 }

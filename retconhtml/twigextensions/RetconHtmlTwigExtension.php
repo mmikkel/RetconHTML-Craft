@@ -59,6 +59,9 @@ class RetconHtmlTwigExtension extends \Twig_Extension
 			// Inject stuff inside one or several containers
 			'retconInject' => new Twig_Filter_Method( $this, 'inject' ),
 
+			// Correct header hierarchy
+			'retconHTagCorrect' => new Twig_Filter_Method( $this, 'hTagCorrect' ),
+
 		);
 	}
 
@@ -114,9 +117,14 @@ class RetconHtmlTwigExtension extends \Twig_Extension
 		return craft()->retconHtml->change( $html, $selectors, $toTag );
 	}
 
-	public function inject( $html, $selectors, $toInject )
+	public function inject( $html, $selectors, $toInject, $overwrite = false )
 	{
-		return craft()->retconHtml->inject( $html, $selectors, $toInject );
+		return craft()->retconHtml->inject( $html, $selectors, $toInject, $overwrite );
+	}
+
+	public function hTagCorrect( $html, $startAt = 'h1' )
+	{
+		return craft()->retconHtml->hTagCorrect( $html, $startAt );
 	}
 
 }
