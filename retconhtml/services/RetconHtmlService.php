@@ -137,8 +137,7 @@ class RetconHtmlService extends BaseApplicationComponent
 		$basePath = craft()->retconHtml_helper->getSetting( 'baseTransformPath' );
 		$baseUrl = craft()->retconHtml_helper->getSetting( 'baseTransformUrl' );
 		$siteUrl = rtrim( CRAFT_SITE_URL, '/' );
-
-		$host = pathinfo( $baseUrl, PHP_URL_HOST );
+		$host = parse_url( $baseUrl, PHP_URL_HOST );
 
 		// Transform images and rewrite sources
 		foreach ( $docImages as $docImage ) {
