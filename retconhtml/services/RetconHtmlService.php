@@ -63,7 +63,7 @@ class RetconHtmlService extends BaseApplicationComponent
 	*
 	* @html String
 	*
-	* @transform Mixed 
+	* @transform Mixed
 	* Named (String) or inline transform (Array)
 	*
 	*/
@@ -72,7 +72,7 @@ class RetconHtmlService extends BaseApplicationComponent
 
 		// Get images from the DOM
 		$doc = new RetconHtmlDocument( $html );
-		
+
 		if ( ! $docImages = $doc->getElementsByTagName( 'img' ) ) {
 			return $html;
 		}
@@ -137,6 +137,7 @@ class RetconHtmlService extends BaseApplicationComponent
 		$basePath = craft()->retconHtml_helper->getSetting( 'baseTransformPath' );
 		$baseUrl = craft()->retconHtml_helper->getSetting( 'baseTransformUrl' );
 		$siteUrl = rtrim( CRAFT_SITE_URL, '/' );
+
 		$host = pathinfo( $baseUrl, PHP_URL_HOST );
 
 		// Transform images and rewrite sources
@@ -147,7 +148,7 @@ class RetconHtmlService extends BaseApplicationComponent
 			$imagePathInfo = pathinfo( $imageUrlInfo[ 'path' ] );
 
 			// Check extension
-			if ( ! in_array( $imagePathInfo[ 'extension' ], $this->_allowedTransformExtensions ) ) {
+			if ( ! in_array( strtolower( $imagePathInfo[ 'extension' ] ), $this->_allowedTransformExtensions ) ) {
 				continue;
 			}
 
@@ -183,7 +184,7 @@ class RetconHtmlService extends BaseApplicationComponent
 			if ( ! file_exists( $imageTransformedPath ) ) {
 
 				$docImagesource = $basePath . $imageUrlInfo[ 'path' ];
-				
+
 				if ( ! $image = @craft()->images->loadImage( $docImagesource ) ) {
 					continue;
 				}
@@ -383,7 +384,7 @@ class RetconHtmlService extends BaseApplicationComponent
 		$selectors = is_array( $selectors ) ? $selectors : array( $selectors );
 
 		$doc = new RetconHtmlDocument( $html );
-		
+
 		foreach ( $selectors as $selector ) {
 
 			// Get all matching selectors, and remove them
@@ -420,7 +421,7 @@ class RetconHtmlService extends BaseApplicationComponent
 
 		$doc = new RetconHtmlDocument( $html );
 		$fragment = $doc->createDocumentFragment();
-		
+
 		foreach ( $selectors as $selector ) {
 
 			if ( ! $elements = $doc->getElementsBySelector( $selector ) ) {
@@ -459,7 +460,7 @@ class RetconHtmlService extends BaseApplicationComponent
 		$selectors = is_array( $selectors ) ? $selectors : array( $selectors );
 
 		$doc = new RetconHtmlDocument( $html );
-		
+
 		foreach ( $selectors as $selector ) {
 
 			// Get all matching selectors, and add/replace attributes
@@ -518,12 +519,12 @@ class RetconHtmlService extends BaseApplicationComponent
 		$selectors = is_array( $selectors ) ? $selectors : array( $selectors );
 
 		$doc = new RetconHtmlDocument( $html );
-		
+
 		// Get wrapper
 		$wrapper = craft()->retconHtml_helper->getSelectorObject( $wrapper );
 		$wrapper->tag = $wrapper->tag === '*' ? 'div' : $wrapper->tag;
 		$wrapperNode = $doc->createElement( $wrapper->tag );
-		
+
 		if ( $wrapper->attribute ) {
 			$wrapperNode->setAttribute( $wrapper->attribute, $wrapper->attributeValue );
 		}
@@ -564,7 +565,7 @@ class RetconHtmlService extends BaseApplicationComponent
 		$selectors = is_array( $selectors ) ? $selectors : array( $selectors );
 
 		$doc = new RetconHtmlDocument( $html );
-		
+
 		foreach ( $selectors as $selector ) {
 
 			// Get all matching selectors, and add/replace attributes
@@ -619,7 +620,7 @@ class RetconHtmlService extends BaseApplicationComponent
 		} else {
 			$textNode = $doc->createTextNode( "{$toInject}" );
 		}
-		
+
 		foreach ( $selectors as $selector ) {
 
 			// Get all matching selectors, and add/replace attributes
@@ -630,7 +631,7 @@ class RetconHtmlService extends BaseApplicationComponent
 			foreach ( $elements as $element ) {
 
 				if ( ! $overwrite ) {
-					
+
 					if ( isset( $injectNode ) ) {
 						$element->appendChild( $doc->importNode( $injectNode->cloneNode( true ), true ) );
 					} else {
@@ -658,8 +659,8 @@ class RetconHtmlService extends BaseApplicationComponent
 
 	/*
 	* hTagCorrect
-	* 
-	* 
+	*
+	*
 	*/
 	public function hTagCorrect( $html, $startAt = 'h1' )
 	{
