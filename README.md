@@ -1,4 +1,4 @@
-# Retcon HTML v. 1.0
+# Retcon HTML v. 1.0.1
 
 ## Got WYSIWYG?
 
@@ -76,38 +76,38 @@ echo craft()->retconHtml->retcon( $entry->body, array(
 
 ### Methods
 
-**[transform](https://github.com/mmikkel/RetconHTML-Craft/wiki/Transform)**  
+**[transform](https://github.com/mmikkel/RetconHTML-Craft/wiki/Transform)**
 Apply a named or inline image transform to all images
 
-**[lazy](https://github.com/mmikkel/RetconHTML-Craft/wiki/Lazy)**  
+**[lazy](https://github.com/mmikkel/RetconHTML-Craft/wiki/Lazy)**
 Replaces the _src_ attribute of image tags with a transparent, 1x1 px base64 encoded gif, retaining the original source in a data attribute
 
-**[autoAlt](https://github.com/mmikkel/RetconHTML-Craft/wiki/AutoAlt)**  
-Adds filename as alternative text for images missing alt tags 
+**[autoAlt](https://github.com/mmikkel/RetconHTML-Craft/wiki/AutoAlt)**
+Adds filename as alternative text for images missing alt tags
 
-**[attr](https://github.com/mmikkel/RetconHTML-Craft/wiki/Attr)**  
+**[attr](https://github.com/mmikkel/RetconHTML-Craft/wiki/Attr)**
 Adds and/or replaces a set of attributes and attribute values – e.g. `class`. Can be used to remove inline styles.
 
-**[wrap](https://github.com/mmikkel/RetconHTML-Craft/wiki/Wrap)**  
+**[wrap](https://github.com/mmikkel/RetconHTML-Craft/wiki/Wrap)**
 Wraps stuff in other stuff
 
-**[unwrap](https://github.com/mmikkel/RetconHTML-Craft/wiki/Unwrap)**  
+**[unwrap](https://github.com/mmikkel/RetconHTML-Craft/wiki/Unwrap)**
 Removes parent node, retaining all children
 
-**[remove](https://github.com/mmikkel/RetconHTML-Craft/wiki/Remove)**  
+**[remove](https://github.com/mmikkel/RetconHTML-Craft/wiki/Remove)**
 Removes all elements matching the given selector(s)
 
-**[only](https://github.com/mmikkel/RetconHTML-Craft/wiki/Only)**  
+**[only](https://github.com/mmikkel/RetconHTML-Craft/wiki/Only)**
 Removes everything but the elements matching the given selector(s)
 
-**[change](https://github.com/mmikkel/RetconHTML-Craft/wiki/Change)**  
+**[change](https://github.com/mmikkel/RetconHTML-Craft/wiki/Change)**
 Changes tag type
 
-**[inject](https://github.com/mmikkel/RetconHTML-Craft/wiki/Inject)**  
-Inject strings or HTML  
+**[inject](https://github.com/mmikkel/RetconHTML-Craft/wiki/Inject)**
+Inject strings or HTML
 
-**[hTagCorrect](https://github.com/mmikkel/RetconHTML-Craft/wiki/HTagCorrect)**  
-Corrects invalid header hierarchies _(this filter is coming soon)_  
+**[hTagCorrect](https://github.com/mmikkel/RetconHTML-Craft/wiki/HTagCorrect)**
+Corrects invalid header hierarchies _(this filter is coming soon)_
 
 ***
 
@@ -123,11 +123,16 @@ Self explanatory.
 HTML output will be encoded to **UTF-8** by default, but you can set the encoding to be anything you want.
 
 ### Disclaimer & support
-Retcon HTML is provided free of charge. The author is not responsible for data loss or any other problems resulting from the use of this plugin.  
-Please see [the Wiki page](https://github.com/mmikkel/RetconHTML-Craft/wiki) for documentation and examples. and report any bugs, feature requests or other issues [here](https://github.com/mmikkel/RetconHTML-Craft).  
+Retcon HTML is provided free of charge. The author is not responsible for data loss or any other problems resulting from the use of this plugin.
+Please see [the Wiki page](https://github.com/mmikkel/RetconHTML-Craft/wiki) for documentation and examples. and report any bugs, feature requests or other issues [here](https://github.com/mmikkel/RetconHTML-Craft).
 As Retcon HTML is a hobby project, no promises are made regarding response time, feature implementations or bug amendments.
 
 #### Changelog
+
+##### 1.0.1
+
+* Fixed issue with hostname parsing for image URLs (could cause images to not be recognized as local assets)
+* Fixed issue with uppercase file extensions not being allowed (could cause image transforms to be rejected)
 
 ##### 1.0
 
