@@ -29,7 +29,7 @@ class RetconHtml_HelperService extends BaseApplicationComponent
 			$settings = array();
 
 			$settings[ 'baseTransformPath' ] = trim( rtrim( $pluginSettings->baseTransformPath, '/' ) ?: rtrim( $_SERVER[ 'DOCUMENT_ROOT' ], '/' ) );
-			$settings[ 'baseTransformUrl' ] = trim( rtrim( $pluginSettings->baseTransformUrl, '/' ) ?: rtrim( CRAFT_SITE_URL, '/' ) );
+			$settings[ 'baseTransformUrl' ] = trim( rtrim( $pluginSettings->baseTransformUrl, '/' ) ?: rtrim( UrlHelper::getSiteUrl(), '/' ) );
 			$settings[ 'encoding' ] = trim( $pluginSettings->encoding ) ?: 'UTF-8';
 
 			if ( strpos( $settings[ 'baseTransformPath' ], '{' ) > -1 || strpos( $settings[ 'baseTransformUrl' ], '{' ) > -1 ) {

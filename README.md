@@ -129,6 +129,10 @@ As Retcon HTML is a hobby project, no promises are made regarding response time,
 
 #### Changelog
 
+##### 1.0.2
+
+* Fixed issue with undefined constant CRAFT_SITE_URL
+
 ##### 1.0.1
 
 * Fixed issue with hostname parsing for image URLs (could cause images to not be recognized as local assets)

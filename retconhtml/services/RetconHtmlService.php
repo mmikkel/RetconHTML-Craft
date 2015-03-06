@@ -136,7 +136,8 @@ class RetconHtmlService extends BaseApplicationComponent
 		// Get basepaths and URLs
 		$basePath = craft()->retconHtml_helper->getSetting( 'baseTransformPath' );
 		$baseUrl = craft()->retconHtml_helper->getSetting( 'baseTransformUrl' );
-		$siteUrl = rtrim( CRAFT_SITE_URL, '/' );
+		
+		$siteUrl = rtrim( UrlHelper::getSiteUrl(), '/' );
 		$host = parse_url( $baseUrl, PHP_URL_HOST );
 
 		// Transform images and rewrite sources
