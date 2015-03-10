@@ -129,6 +129,10 @@ As Retcon HTML is a hobby project, no promises are made regarding response time,
 
 #### Changelog
 
+##### 1.0.3
+
+* Fixed typo in settings template
+
 ##### 1.0.2
 
 * Fixed issue with undefined constant CRAFT_SITE_URL
