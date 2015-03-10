@@ -1,4 +1,4 @@
-# Retcon HTML v. 1.0.1
+# Retcon HTML v. 1.0.3
 
 ## Got WYSIWYG?
 
