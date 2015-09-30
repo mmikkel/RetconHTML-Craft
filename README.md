@@ -1,4 +1,4 @@
-# Retcon HTML v. 1.0.3
+# Retcon HTML v. 1.1.0
 
 ## Got WYSIWYG?
 
@@ -106,8 +106,8 @@ Changes tag type
 **[inject](https://github.com/mmikkel/RetconHTML-Craft/wiki/Inject)**
 Inject strings or HTML
 
-**[hTagCorrect](https://github.com/mmikkel/RetconHTML-Craft/wiki/HTagCorrect)**
-Corrects invalid header hierarchies _(this filter is coming soon)_
+**[replace](https://github.com/mmikkel/RetconHTML-Craft/wiki/Inject)**
+Replace stuff with ```preg_replace``
 
 ***
 
@@ -128,6 +128,10 @@ Please see [the Wiki page](https://github.com/mmikkel/RetconHTML-Craft/wiki) for
 As Retcon HTML is a hobby project, no promises are made regarding response time, feature implementations or bug amendments.
 
 #### Changelog
+
+##### 1.1.0
+
+* Added ```replace``` filter
 
 ##### 1.0.3
 

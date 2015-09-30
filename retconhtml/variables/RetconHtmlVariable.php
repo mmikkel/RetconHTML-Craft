@@ -27,7 +27,7 @@ class RetconHtmlVariable
 	public function retcon()
 	{
 		$args = func_get_args();
-		$html = array_shift( $args );	
+		$html = array_shift( $args );
 		return craft()->retconHtml->retcon( $html, $args );
 	}
 
@@ -84,6 +84,11 @@ class RetconHtmlVariable
 	public function hTagCorrect( $html, $startAt = 'h1' )
 	{
 		return craft()->retconHtml->hTagCorrect( $html, $startAt );
+	}
+
+	public function replace( $html, $pattern, $replace = '' )
+	{
+		return craft()->retconHtml->replace( $html, $pattern, $replace );
 	}
 
 }

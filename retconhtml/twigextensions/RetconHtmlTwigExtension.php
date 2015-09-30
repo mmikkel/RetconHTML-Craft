@@ -25,34 +25,34 @@ class RetconHtmlTwigExtension extends \Twig_Extension
     public function getFilters()
 	{
 		return array(
-			
+
 			// Catch-all filter
 			'retcon' => new Twig_Filter_Method( $this, 'retcon' ),
-			
+
 			// Apply an image transform to all <img> tags
 			'retconTransform' => new Twig_Filter_Method( $this, 'transform' ),
-			
+
 			// Rewrite <img> tags for lazy loading
 			'retconLazy' => new Twig_Filter_Method( $this, 'lazy' ),
-			
+
 			// Add automatic alt tags to images
 			'retconAutoAlt' => new Twig_Filter_Method( $this, 'autoAlt' ),
-			
+
 			// Add (or overwrite) attributes for selector
 			'retconAttr' => new Twig_Filter_Method( $this, 'attr' ),
-			
+
 			// Wrap stuff in other stuff!
 			'retconWrap' => new Twig_Filter_Method( $this, 'wrap' ),
-			
+
 			// Unwrap stuff
 			'retconUnwrap' => new Twig_Filter_Method( $this, 'unwrap' ),
-			
+
 			// Remove the matching selector(s)!
 			'retconRemove' => new Twig_Filter_Method( $this, 'remove' ),
-			
+
 			// Remove *everything but* the matching selector(s)!
 			'retconOnly' => new Twig_Filter_Method( $this, 'only' ),
-			
+
 			// Change tag type
 			'retconChange' => new Twig_Filter_Method( $this, 'change' ),
 
@@ -62,13 +62,16 @@ class RetconHtmlTwigExtension extends \Twig_Extension
 			// Correct header hierarchy
 			'retconHTagCorrect' => new Twig_Filter_Method( $this, 'hTagCorrect' ),
 
+			// Replace with regex
+			'retconReplace' => new Twig_Filter_Method( $this, 'replace' ),
+
 		);
 	}
 
 	public function retcon()
 	{
 		$args = func_get_args();
-		$html = array_shift( $args );	
+		$html = array_shift( $args );
 		return craft()->retconHtml->retcon( $html, $args );
 	}
 
@@ -125,6 +128,11 @@ class RetconHtmlTwigExtension extends \Twig_Extension
 	public function hTagCorrect( $html, $startAt = 'h1' )
 	{
 		return craft()->retconHtml->hTagCorrect( $html, $startAt );
+	}
+
+	public function replace( $html, $pattern, $replace = '' )
+	{
+		return craft()->retconHtml->replace( $html, $pattern, $replace );
 	}
 
 }

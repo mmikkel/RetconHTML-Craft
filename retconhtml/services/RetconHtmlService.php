@@ -136,7 +136,7 @@ class RetconHtmlService extends BaseApplicationComponent
 		// Get basepaths and URLs
 		$basePath = craft()->retconHtml_helper->getSetting( 'baseTransformPath' );
 		$baseUrl = craft()->retconHtml_helper->getSetting( 'baseTransformUrl' );
-		
+
 		$siteUrl = rtrim( UrlHelper::getSiteUrl(), '/' );
 		$host = parse_url( $baseUrl, PHP_URL_HOST );
 
@@ -666,6 +666,15 @@ class RetconHtmlService extends BaseApplicationComponent
 	{
 		// TODO
 		return $html;
+	}
+
+	/*
+	*	regex
+	*
+	*/
+	public function replace( $html, $pattern, $replace = '' )
+	{
+		return preg_replace($pattern, $replace, $html);
 	}
 
 }
