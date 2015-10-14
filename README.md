@@ -1,4 +1,4 @@
-# Retcon HTML v. 1.1.0
+# Retcon HTML v. 1.1.1
 
 ## Got WYSIWYG?
 
@@ -128,6 +128,10 @@ Please see [the Wiki page](https://github.com/mmikkel/RetconHTML-Craft/wiki) for
 As Retcon HTML is a hobby project, no promises are made regarding response time, feature implementations or bug amendments.
 
 #### Changelog
+
+##### 1.1.1
+
+* Fixed an issue where certain filters would only apply to the first matched selector
 
 ##### 1.1.0
 

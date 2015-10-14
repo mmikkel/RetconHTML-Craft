@@ -428,9 +428,11 @@ class RetconHtmlService extends BaseApplicationComponent
 				continue;
 			}
 
-			foreach ( $elements as $element ) {
+			$numElements = $elements->length;
 
-				$fragment->appendChild( $element );
+			for ( $i = $numElements - 1; $i >= 0; --$i ) {
+
+				$fragment->appendChild( $elements->item( $i ) );
 
 			}
 
@@ -536,8 +538,11 @@ class RetconHtmlService extends BaseApplicationComponent
 				continue;
 			}
 
-			foreach ( $elements as $element ) {
+			$numElements = $elements->length;
 
+			for ( $i = $numElements - 1; $i >= 0; --$i ) {
+
+				$element = $elements->item( $i );
 				$wrapperClone = $wrapperNode->cloneNode( true );
 				$element->parentNode->replaceChild( $wrapperClone, $element );
 				$wrapperClone->appendChild( $element );
@@ -573,10 +578,12 @@ class RetconHtmlService extends BaseApplicationComponent
 				continue;
 			}
 
-			foreach ( $elements as $element ) {
+			$numElements = $elements->length;
 
+			for ( $i = $numElements - 1; $i >= 0; --$i ) {
+
+				$element = $elements->item( $i );
 				$parentNode = $element->parentNode;
-
 				$fragment = $doc->createDocumentFragment();
 
 				while ( $parentNode->childNodes->length > 0 ) {
@@ -628,7 +635,11 @@ class RetconHtmlService extends BaseApplicationComponent
 				continue;
 			}
 
-			foreach ( $elements as $element ) {
+			$numElements = $elements->length;
+
+			for ( $i = $numElements - 1; $i >= 0; --$i ) {
+
+				$element = $elements->item( $i );
 
 				if ( ! $overwrite ) {
 

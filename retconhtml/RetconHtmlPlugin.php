@@ -14,7 +14,7 @@
 class RetconHtmlPlugin extends BasePlugin
 {
 
-	protected   $_version = '1.1.0',
+	protected   $_version = '1.1.1',
 				$_developer = 'Mats Mikkel Rummelhoff',
 				$_developerUrl = 'http://mmikkel.no',
 				$_pluginUrl = 'https://github.com/mmikkel/RetconHTML-Craft';
