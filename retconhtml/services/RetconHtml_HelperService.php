@@ -6,9 +6,9 @@
  * @author      Mats Mikkel Rummelhoff <http://mmikkel.no>
  * @package     Retcon HTML
  * @since       Craft 2.3
- * @copyright   Copyright (c) 2015, Mats Mikkel Rummelhoff
+ * @copyright   Copyright (c) 2016, Mats Mikkel Rummelhoff
  * @license     http://opensource.org/licenses/mit-license.php MIT License
- * @link        https://github.com/mmikkel/RetconHtml-Craft
+ * @link        https://github.com/mmikkel/RetconHTML-Craft
  */
 
 class RetconHtml_HelperService extends BaseApplicationComponent
@@ -18,33 +18,33 @@ class RetconHtml_HelperService extends BaseApplicationComponent
 				$_settings = null;
 
 
-	public function getSetting( $setting )
+	public function getSetting($setting)
 	{
 
 		// Get settings
-		if ( $this->_settings === null ) {
+		if ($this->_settings === null) {
 
-			$plugin = craft()->plugins->getPlugin( 'retconHtml' );
+			$plugin = craft()->plugins->getPlugin('retconHtml');
 			$pluginSettings = $plugin->getSettings();
 			$settings = array();
 
-			$settings[ 'baseTransformPath' ] = trim( rtrim( $pluginSettings->baseTransformPath, '/' ) ?: rtrim( $_SERVER[ 'DOCUMENT_ROOT' ], '/' ) );
-			$settings[ 'baseTransformUrl' ] = trim( rtrim( $pluginSettings->baseTransformUrl, '/' ) ?: rtrim( UrlHelper::getSiteUrl(), '/' ) );
-			$settings[ 'encoding' ] = trim( $pluginSettings->encoding ) ?: 'UTF-8';
+			$settings['baseTransformPath'] = trim(rtrim($pluginSettings->baseTransformPath, '/') ?: rtrim($_SERVER['DOCUMENT_ROOT'], '/'));
+			$settings['baseTransformUrl'] = trim(rtrim($pluginSettings->baseTransformUrl, '/') ?: rtrim(UrlHelper::getSiteUrl(), '/'));
+			$settings['encoding'] = trim($pluginSettings->encoding) ?: 'UTF-8';
 
-			if ( strpos( $settings[ 'baseTransformPath' ], '{' ) > -1 || strpos( $settings[ 'baseTransformUrl' ], '{' ) > -1 ) {
+			if (strpos($settings['baseTransformPath'], '{') > -1 || strpos($settings['baseTransformUrl'], '{') > -1) {
 
 				// Get environment variables
-				if ( $this->_environmentVariables === null ) {
-					$this->_environmentVariables = craft()->config->get( 'environmentVariables' );
+				if ($this->_environmentVariables === null) {
+					$this->_environmentVariables = craft()->config->get('environmentVariables');
 				}
 
 				// Replace environment variables
-				if ( is_array( $this->_environmentVariables ) && ! empty( $this->_environmentVariables ) ) {
-					foreach ( $this->_environmentVariables as $key => $value ) {
-						$settings[ 'baseTransformPath' ] = preg_replace( '#/+#','/', str_replace( '{' . $key . '}', $value, $settings[ 'baseTransformPath' ] ) );
-						$settings[ 'baseTransformUrl' ] = preg_replace( '#/+#','/', str_replace( '{' . $key . '}', $value, $settings[ 'baseTransformUrl' ] ) );
-						$settings[ 'baseTransformUrl' ] = str_replace( ':/', '://', $settings[ 'baseTransformUrl' ] );
+				if (is_array($this->_environmentVariables) && !empty($this->_environmentVariables)) {
+					foreach ($this->_environmentVariables as $key => $value) {
+						$settings['baseTransformPath'] = preg_replace('#/+#','/', str_replace('{' . $key . '}', $value, $settings['baseTransformPath']));
+						$settings['baseTransformUrl'] = preg_replace('#/+#','/', str_replace('{' . $key . '}', $value, $settings['baseTransformUrl']));
+						$settings['baseTransformUrl'] = str_replace(':/', '://', $settings['baseTransformUrl']);
 					}
 				}
 
@@ -54,7 +54,7 @@ class RetconHtml_HelperService extends BaseApplicationComponent
 
 		}
 
-		return $this->_settings[ $setting ] ?: false;
+		return $this->_settings[$setting] ?: false;
 
 	}
 
@@ -62,12 +62,12 @@ class RetconHtml_HelperService extends BaseApplicationComponent
 	* Parse selector string and return object with tagname, attribute and attribute value
 	*
 	*/
-	public function getSelectorObject( $selector )
+	public function getSelectorObject($selector)
 	{
 		
-		$delimiters = array( 'id' => '#', 'class' => '.' );
+		$delimiters = array('id' => '#', 'class' => '.');
 
-		$selectorStr = preg_replace( '/\s+/', '', $selector );
+		$selectorStr = preg_replace('/\s+/', '', $selector);
 
 		$selector = array(
 			'tag' => $selector,
@@ -76,17 +76,17 @@ class RetconHtml_HelperService extends BaseApplicationComponent
 		);
 
 		// Check for class or ID
-		foreach ( $delimiters as $attribute => $indicator ) {
+		foreach ($delimiters as $attribute => $indicator) {
 
-			if ( strpos( $selectorStr, $indicator ) > -1 ) {
+			if (strpos($selectorStr, $indicator) > -1) {
 
-				$temp = explode( $indicator, $selectorStr );
+				$temp = explode($indicator, $selectorStr);
 
-				$selector[ 'tag' ] = $temp[ 0 ] !== '' ? $temp[ 0 ] : '*';
+				$selector['tag'] = $temp[0] !== '' ? $temp[0] : '*';
 
-				if ( ( $attributeValue = $temp[ count( $temp ) - 1 ] ) !== '' ) {
-					$selector[ 'attribute' ] = $attribute;
-					$selector[ 'attributeValue' ] = $attributeValue;
+				if (($attributeValue = $temp[count($temp) - 1]) !== '') {
+					$selector['attribute'] = $attribute;
+					$selector['attributeValue'] = $attributeValue;
 				}
 
 				break;
@@ -101,8 +101,8 @@ class RetconHtml_HelperService extends BaseApplicationComponent
 
 	public function getEncoding()
 	{
-		$encoding = $this->getSetting( 'encoding' );
-		return $encoding ? trim( $encoding ) : false;
+		$encoding = $this->getSetting('encoding');
+		return $encoding ? trim($encoding) : false;
 	}
 
 }

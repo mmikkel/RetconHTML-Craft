@@ -1,4 +1,4 @@
-# Retcon HTML v. 1.1.1
+# Retcon HTML v. 1.2
 
 ## Got WYSIWYG?
 
@@ -128,6 +128,11 @@ Please see [the Wiki page](https://github.com/mmikkel/RetconHTML-Craft/wiki) for
 As Retcon HTML is a hobby project, no promises are made regarding response time, feature implementations or bug amendments.
 
 #### Changelog
+
+##### 1.2
+
+* [Added] Adds release feed, documentation URL and other Craft 2.5 features
+* [Improved] Now uses André Elvan's [Imager](https://github.com/aelvan/Imager-Craft) plugin for image transforms (where available)
 
 ##### 1.1.1
 

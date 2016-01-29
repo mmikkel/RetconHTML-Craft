@@ -1,0 +1,11 @@
+[
+    {
+        "version": "1.2",
+        "downloadUrl": "https://github.com/mmikkel/RetconHTML-Craft/archive/master.zip",
+        "date": "2016-01-29T10:00:00-08:00",
+        "notes": [
+            "[Added] Adds release feed, documentation URL and other Craft 2.5 features",
+            "[Improved] Now uses André Elvan's Imager plugin for image transforms, where available"
+        ]
+    }
+]
