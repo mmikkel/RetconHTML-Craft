@@ -77,7 +77,7 @@ echo craft()->retconHtml->retcon( $entry->body, array(
 ### Methods
 
 **[transform](https://github.com/mmikkel/RetconHTML-Craft/wiki/Transform)**
-Apply a named or inline image transform to all images
+Apply a named or inline image transform to all (matched) images. If installed, Retcon uses [Imager](https://github.com/aelvan/Imager-Craft) to apply the transform.
 
 **[lazy](https://github.com/mmikkel/RetconHTML-Craft/wiki/Lazy)**
 Replaces the _src_ attribute of image tags with a transparent, 1x1 px base64 encoded gif, retaining the original source in a data attribute
