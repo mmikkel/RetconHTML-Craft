@@ -25,7 +25,7 @@ class RetconHtmlPlugin extends BasePlugin
 
 	public function getName()
 	{
-		 return Craft::t('Retcon');
+		return Craft::t('Retcon');
 	}
 
 	public function getVersion()
