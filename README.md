@@ -106,7 +106,7 @@ Changes tag type
 **[inject](https://github.com/mmikkel/RetconHTML-Craft/wiki/Inject)**  
 Inject strings or HTML
 
-**[replace](https://github.com/mmikkel/RetconHTML-Craft/wiki/Inject)**  
+**[replace](https://github.com/mmikkel/RetconHTML-Craft/wiki/Replace)**  
 Replace stuff with ```preg_replace``
 
 ### Settings
