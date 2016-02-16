@@ -30,6 +30,10 @@ class RetconHtmlService extends BaseApplicationComponent
 	public function retcon($html, $args)
 	{
 
+		if (!$html || strlen($html) === 0) {
+			return $html;
+		}
+
 		if (empty($args)) {
 			throw new Exception(Craft::t("No filter method or callbacks defined"));
 			return $html;
@@ -69,6 +73,10 @@ class RetconHtmlService extends BaseApplicationComponent
 	*/
 	public function transform($html, $transform, $transformDefaults = null, $configOverrides = null)
 	{
+
+		if (!$html || strlen($html) === 0) {
+			return $html;
+		}
 
 		// Get images from the DOM
 		$doc = new RetconHtmlDocument($html);
@@ -282,6 +290,10 @@ class RetconHtmlService extends BaseApplicationComponent
 	public function lazy($html, $className = null, $attributeName = null)
 	{
 
+		if (!$html || strlen($html) === 0) {
+			return $html;
+		}
+
 		$doc = new RetconHtmlDocument($html);
 
 		if (!$docImages = $doc->getElementsByTagName('img')) {
@@ -314,6 +326,10 @@ class RetconHtmlService extends BaseApplicationComponent
 	*/
 	public function autoAlt($html, $overwrite = false)
 	{
+
+		if (!$html || strlen($html) === 0) {
+			return $html;
+		}
 
 		$doc = new RetconHtmlDocument($html);
 
@@ -355,6 +371,10 @@ class RetconHtmlService extends BaseApplicationComponent
 	public function attr($html, $selectors, $attributes, $overwrite = true)
 	{
 
+		if (!$html || strlen($html) === 0) {
+			return $html;
+		}
+
 		$selectors = is_array($selectors) ? $selectors : array($selectors);
 
 		$doc = new RetconHtmlDocument($html);
@@ -374,6 +394,10 @@ class RetconHtmlService extends BaseApplicationComponent
 					if (!$value) {
 
 						$element->removeAttribute($key);
+
+					} else if ($value === true) {
+
+						$element->setAttribute($key, '');
 
 					} else {
 
@@ -411,6 +435,10 @@ class RetconHtmlService extends BaseApplicationComponent
 	public function remove($html, $selectors)
 	{
 
+		if (!$html || strlen($html) === 0) {
+			return $html;
+		}
+
 		$selectors = is_array($selectors) ? $selectors : array($selectors);
 
 		$doc = new RetconHtmlDocument($html);
@@ -446,6 +474,10 @@ class RetconHtmlService extends BaseApplicationComponent
 	*/
 	public function only($html, $selectors)
 	{
+
+		if (!$html || strlen($html) === 0) {
+			return $html;
+		}
 
 		$selectors = is_array($selectors) ? $selectors : array($selectors);
 
@@ -488,6 +520,10 @@ class RetconHtmlService extends BaseApplicationComponent
 	*/
 	public function change($html, $selectors, $toTag)
 	{
+
+		if (!$html || strlen($html) === 0) {
+			return $html;
+		}
 
 		$selectors = is_array($selectors) ? $selectors : array($selectors);
 
@@ -548,6 +584,10 @@ class RetconHtmlService extends BaseApplicationComponent
 	public function wrap($html, $selectors, $wrapper)
 	{
 
+		if (!$html || strlen($html) === 0) {
+			return $html;
+		}
+
 		$selectors = is_array($selectors) ? $selectors : array($selectors);
 
 		$doc = new RetconHtmlDocument($html);
@@ -597,6 +637,10 @@ class RetconHtmlService extends BaseApplicationComponent
 	public function unwrap($html, $selectors)
 	{
 
+		if (!$html || strlen($html) === 0) {
+			return $html;
+		}
+
 		$selectors = is_array($selectors) ? $selectors : array($selectors);
 
 		$doc = new RetconHtmlDocument($html);
@@ -644,6 +688,10 @@ class RetconHtmlService extends BaseApplicationComponent
 	*/
 	public function inject($html, $selectors, $toInject, $overwrite = false)
 	{
+
+		if (!$html || strlen($html) === 0) {
+			return $html;
+		}
 
 		$selectors = is_array($selectors) ? $selectors : array($selectors);
 
@@ -715,6 +763,9 @@ class RetconHtmlService extends BaseApplicationComponent
 	*/
 	public function replace($html, $pattern, $replace = '')
 	{
+		if (!$html || strlen($html) === 0) {
+			return $html;
+		}
 		return preg_replace($pattern, $replace, $html);
 	}
 
