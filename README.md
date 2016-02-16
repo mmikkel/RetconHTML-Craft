@@ -1,4 +1,4 @@
-# Retcon v. 1.2 for Craft CMS ![Craft 2.5](https://img.shields.io/badge/craft-2.5-red.svg?style=flat-square)
+# Retcon v. 1.2.1 for Craft CMS ![Craft 2.5](https://img.shields.io/badge/craft-2.5-red.svg?style=flat-square)
 
 ## Got WYSIWYG?
 
@@ -76,37 +76,37 @@ echo craft()->retconHtml->retcon($entry->body, array(
 
 ### Methods
 
-**[transform](https://github.com/mmikkel/RetconHTML-Craft/wiki/Transform)**  
+**[transform](https://github.com/mmikkel/RetconHTML-Craft/wiki/Transform)**
 Apply a named or inline image transform to all (matched) images. If installed, Retcon uses [Imager](https://github.com/aelvan/Imager-Craft) to apply the transform.
 
-**[lazy](https://github.com/mmikkel/RetconHTML-Craft/wiki/Lazy)**  
+**[lazy](https://github.com/mmikkel/RetconHTML-Craft/wiki/Lazy)**
 Replaces the _src_ attribute of image tags with a transparent, 1x1 px base64 encoded gif, retaining the original source in a data attribute
 
-**[autoAlt](https://github.com/mmikkel/RetconHTML-Craft/wiki/AutoAlt)**  
+**[autoAlt](https://github.com/mmikkel/RetconHTML-Craft/wiki/AutoAlt)**
 Adds filename as alternative text for images missing alt tags
 
-**[attr](https://github.com/mmikkel/RetconHTML-Craft/wiki/Attr)**  
+**[attr](https://github.com/mmikkel/RetconHTML-Craft/wiki/Attr)**
 Adds and/or replaces a set of attributes and attribute values – e.g. `class`. Can be used to remove inline styles.
 
-**[wrap](https://github.com/mmikkel/RetconHTML-Craft/wiki/Wrap)**  
+**[wrap](https://github.com/mmikkel/RetconHTML-Craft/wiki/Wrap)**
 Wraps stuff in other stuff
 
-**[unwrap](https://github.com/mmikkel/RetconHTML-Craft/wiki/Unwrap)**  
+**[unwrap](https://github.com/mmikkel/RetconHTML-Craft/wiki/Unwrap)**
 Removes parent node, retaining all children
 
-**[remove](https://github.com/mmikkel/RetconHTML-Craft/wiki/Remove)**  
+**[remove](https://github.com/mmikkel/RetconHTML-Craft/wiki/Remove)**
 Removes all elements matching the given selector(s)
 
-**[only](https://github.com/mmikkel/RetconHTML-Craft/wiki/Only)**  
+**[only](https://github.com/mmikkel/RetconHTML-Craft/wiki/Only)**
 Removes everything but the elements matching the given selector(s)
 
-**[change](https://github.com/mmikkel/RetconHTML-Craft/wiki/Change)**  
+**[change](https://github.com/mmikkel/RetconHTML-Craft/wiki/Change)**
 Changes tag type
 
-**[inject](https://github.com/mmikkel/RetconHTML-Craft/wiki/Inject)**  
+**[inject](https://github.com/mmikkel/RetconHTML-Craft/wiki/Inject)**
 Inject strings or HTML
 
-**[replace](https://github.com/mmikkel/RetconHTML-Craft/wiki/Replace)**  
+**[replace](https://github.com/mmikkel/RetconHTML-Craft/wiki/Replace)**
 Replace stuff with ```preg_replace``
 
 ### Settings
@@ -126,6 +126,11 @@ Please see [the Wiki page](https://github.com/mmikkel/RetconHTML-Craft/wiki) for
 As Retcon is a hobby project, no promises are made regarding response time, feature implementations or bug amendments.
 
 #### Changelog
+
+##### 1.2.1
+
+* [Added] Its now possible to add attributes without values
+* [Improved] Reasons now longer throws PHP exceptions for empty strings
 
 ##### 1.2
 

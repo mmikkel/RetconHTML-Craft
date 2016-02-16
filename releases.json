@@ -1,5 +1,14 @@
 [
     {
+        "version": "1.2.1",
+        "downloadUrl": "https://github.com/mmikkel/RetconHTML-Craft/archive/master.zip",
+        "date": "2016-02-16T10:00:00-08:00",
+        "notes": [
+            "[Added] Its now possible to add attributes without values",
+            "[Improved] Reasons now longer throws PHP exceptions for empty strings"
+        ]
+    },
+    {
         "version": "1.2",
         "downloadUrl": "https://github.com/mmikkel/RetconHTML-Craft/archive/master.zip",
         "date": "2016-01-29T10:00:00-08:00",
