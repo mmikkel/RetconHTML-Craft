@@ -1,5 +1,13 @@
 [
     {
+        "version": "1.2.2",
+        "downloadUrl": "https://github.com/mmikkel/RetconHTML-Craft/archive/master.zip",
+        "date": "2016-03-01T10:00:00-08:00",
+        "notes": [
+            "[Fixed] Fixed an issue where a missing $options parameter to RetconHtmlDocument would throw a warning in PHP7"
+        ]
+    },
+    {
         "version": "1.2.1",
         "downloadUrl": "https://github.com/mmikkel/RetconHTML-Craft/archive/master.zip",
         "date": "2016-02-16T10:00:00-08:00",

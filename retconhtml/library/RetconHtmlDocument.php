@@ -19,13 +19,13 @@ class RetconHtmlDocument extends \DOMDocument
 
 	public function __construct($html = false)
 	{
-		
+
 		parent::__construct();
 
 		libxml_use_internal_errors(true); // Might make this a setting in the future
 
 		$this->_outputEncoding = craft()->retconHtml_helper->getEncoding();
-		
+
 		if ($html) {
 			$this->loadHtml($html);
 		}
@@ -44,7 +44,7 @@ class RetconHtmlDocument extends \DOMDocument
 			$xpath = $this->getXPath();
 
 			$query = '//' . $selector->tag . '[contains(concat(" ",@' . $selector->attribute . '," "), " ' . $selector->attributeValue . ' ")]';
-			
+
 			$elements = $xpath->query($query);
 
 		} else {
@@ -57,7 +57,7 @@ class RetconHtmlDocument extends \DOMDocument
 
 	}
 
-	public function loadHtml($html)
+	public function loadHtml($html, $options = null)
 	{
 		parent::loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', $this->_outputEncoding));
 		$this->normalize();
