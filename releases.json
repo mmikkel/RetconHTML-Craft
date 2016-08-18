@@ -1,5 +1,16 @@
 [
     {
+        "version": "1.3",
+        "downloadUrl": "https://github.com/mmikkel/RetconHTML-Craft/archive/master.zip",
+        "date": "2016-08-18T10:00:00-08:00",
+        "notes": [
+            "[Added] Adds retconSrcset filter for simple responsive images",
+            "[Added] Adds retconRenameAttr filter for renaming attribute names",
+            "[Added] Adds setting to turn off Imager support",
+            "[Improved] The rectonLazy filter base64 string now retains the aspect ratio for the original image"
+        ]
+    },
+    {
         "version": "1.2.2",
         "downloadUrl": "https://github.com/mmikkel/RetconHTML-Craft/archive/master.zip",
         "date": "2016-03-01T10:00:00-08:00",

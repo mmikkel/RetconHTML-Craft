@@ -14,759 +14,734 @@
 class RetconHtmlService extends BaseApplicationComponent
 {
 
-	protected 	$_allowedTransformExtensions = array('jpg', 'png', 'gif'),
-				$_transforms = null;
+    /**
+     * @param $html
+     * @param $args
+     * @return mixed
+     * @throws Exception
+     */
+    public function retcon($html, $args)
+    {
 
-	/*
-	* retcon
-	*
-	* Catch-all wrapping all other methods
-	*
-	* @html String
-	*
-	* @args Mixed
-	*
-	*/
-	public function retcon($html, $args)
-	{
+        if (!$html || strlen($html) === 0) {
+            return $html;
+        }
 
-		if (!$html || strlen($html) === 0) {
-			return $html;
-		}
+        if (empty($args)) {
+            throw new Exception(Craft::t('No filter method or callbacks defined'));
+            return $html;
+        }
 
-		if (empty($args)) {
-			throw new Exception(Craft::t("No filter method or callbacks defined"));
-			return $html;
-		}
+        $calls = is_array($args[0]) ? $args[0] : array($args);
 
-		$calls = is_array($args[0]) ? $args[0] : array($args);
+        foreach ($calls as $call) {
 
-		foreach ($calls as $call) {
+            $args = is_array($call) ? $call : array($call);
 
-			$args = is_array($call) ? $call : array($call);
+            $filter = array_shift($args);
 
-			$filter = array_shift($args);
+            if (!method_exists($this, $filter)) {
+                throw new Exception(Craft::t('Undefined filter method {$filter}'));
+                return $html;
+            }
+
+            $html = call_user_func_array(array($this, $filter), array_merge(array($html), $args));
+
+        }
+
+        return $html;
+
+    }
+
+    /*
+    * transform
+    *
+    * Apply an image transform to all images.
+    *
+    * @html String
+    *
+    * @transform Mixed
+    * Named (String) or inline transform (Array)
+    *
+    */
+    public function transform($html, $transform, $transformDefaults = null, $configOverrides = null)
+    {
+
+        if (!$html || strlen($html) === 0) {
+            return $html;
+        }
+
+        $doc = new RetconHtmlDocument($html);
+        $docImages = $doc->getElementsByTagName('img');
+
+        if (!$docImages) {
+            return $html;
+        }
+
+        $transform = craft()->retconHtml_helper->getImageTransform($transform);
+
+        if (!$transform) {
+            return $html;
+        }
+
+        // Transform images
+        foreach ($docImages as $docImage) {
+
+            $imageUrl = craft()->elements->parseRefs($docImage->getAttribute('src'));
+
+            if (!$imageUrl) {
+                continue;
+            }
+
+            $transformedImage = craft()->retconHtml_helper->getTransformedImage($imageUrl, $transform, $transformDefaults, $configOverrides);
+
+            if (!$transformedImage) {
+                continue;
+            }
+
+            $docImage->setAttribute('src', $transformedImage->url);
+
+            if ($docImage->getAttribute('width')) {
+                $docImage->setAttribute('width', $transformedImage->width);
+            }
+            if ($docImage->getAttribute('height')) {
+                $docImage->setAttribute('height', $transformedImage->height);
+            }
+
+        }
+
+        return $doc->getHtml();
+
+    }
+
+    /*
+    * srcset
+    *
+    *
+    * @html String
+    *
+    * @transform Mixed
+    * Named (String) or inline transform (Array)
+    *
+    */
+    public function srcset($html, $transforms, $sizes = null, $base64src = true, $transformDefaults = null, $configOverrides = null)
+    {
+
+        if (!$html || strlen($html) === 0) {
+            return $html;
+        }
+
+        // Get images
+        $doc = new RetconHtmlDocument($html);
+        $docImages = $doc->getElementsByTagName('img');
+
+        if (!$docImages) {
+            return $html;
+        }
+
+        // Get transforms
+        if (!is_array($transforms)) {
+            $transforms = array($transforms);
+        }
+        $temp = array();
+        foreach ($transforms as $transform) {
+            $transform = craft()->retconHtml_helper->getImageTransform($transform);
+            if ($transform) {
+                $temp[] = $transform;
+            }
+        }
+        if (empty($temp)) {
+            return $html;
+        }
+        $transforms = $temp;
+
+        // Get sizes attribute
+        if ($sizes !== null) {
+            $sizes = !is_array($sizes) ? array($sizes) : $sizes;
+        }
+
+        // Add srcset attribute to images
+        foreach ($docImages as $docImage) {
+
+            $imageUrl = craft()->elements->parseRefs($docImage->getAttribute('src'));
+
+            if (!$imageUrl) {
+                continue;
+            }
+
+            // Get transformed images
+            $transformedImages = array();
+            foreach ($transforms as $transform) {
+                $transformedImage = craft()->retconHtml_helper->getTransformedImage($imageUrl, $transform, $transformDefaults, $configOverrides);
+                if ($transformedImage) {
+                    $transformedImages[] = $transformedImage;
+                }
+            }
+            if (empty($transformedImages)) {
+                continue;
+            }
+
+            // Add srcset attribute
+            $docImage->setAttribute('srcset', craft()->retconHtml_helper->getSrcsetAttribute($transformedImages));
+
+            // Add sizes attribute
+            if ($sizes) {
+                $docImage->setAttribute('sizes', implode(', ', $sizes));
+            }
+
+            // Swap out the src for a base64 encoded SVG
+            if ($base64src) {
+                $dimensions = craft()->retconHtml_helper->getImageDimensions($docImage);
+                $width = $dimensions ? $dimensions['width'] : null;
+                $height = $dimensions ? $dimensions['height'] : null;
+                $docImage->setAttribute('src', craft()->retconHtml_helper->getBase64Pixel($width, $height));
+            }
+
+        }
+
+        return $doc->getHtml();
+
+    }
+
+    /*
+    * lazy
+    *
+    * Replaces the src attribute with a base64 encoded, transparent SVG
+    * The original source will be retained in a data attribute
+    *
+    * @className String
+    * Class for lazy images (optional, default "lazy")
+    *
+    * @attributeName String
+    * Name of data attribute for original source (optional, default "original")
+    *
+    */
+    public function lazy($html, $className = null, $attributeName = null)
+    {
+
+        if (!$html || strlen($html) === 0) {
+            return $html;
+        }
+
+        $doc = new RetconHtmlDocument($html);
+
+        if (!$docImages = $doc->getElementsByTagName('img')) {
+            return $html;
+        }
+
+        $attributeName = 'data-' . ($attributeName ?: 'original');
+        $className = $className ?: 'lazy';
+
+        foreach ($docImages as $docImage) {
+            $imageClasses = explode(' ', $docImage->getAttribute('class'));
+            $imageClasses[] = $className;
+            $dimensions = craft()->retconHtml_helper->getImageDimensions($docImage);
+            $width = $dimensions ? $dimensions['width'] : null;
+            $height = $dimensions ? $dimensions['height'] : null;
+            $docImage->setAttribute('class', trim(implode(' ', $imageClasses)));
+            $docImage->setAttribute($attributeName, $docImage->getAttribute('src'));
+            $docImage->setAttribute('src', craft()->retconHtml_helper->getBase64Pixel($width, $height));
+            $docImage->setAttribute('width', $width);
+            $docImage->setAttribute('height', $height);
+        }
+
+        return $doc->getHtml();
+
+    }
+
+    /*
+    * autoAlt
+    *
+    * Adds filename as alt attribute for images missing alternative text. Optionally overwrite alt attribute for all images
+    *
+    * @overwrite Boolean
+    * Overwrite existing alt attributes (optional, default false)
+    *
+    */
+    public function autoAlt($html, $overwrite = false)
+    {
+
+        if (!$html || strlen($html) === 0) {
+            return $html;
+        }
+
+        $doc = new RetconHtmlDocument($html);
+
+        if (!$docImages = $doc->getElementsByTagName('img')) {
+            return $html;
+        }
+
+        foreach ($docImages as $docImage) {
+
+            $alt = $docImage->getAttribute('alt');
+
+            if (!$alt || strlen($alt) === 0) {
+                $imageSource = $docImage->getAttribute('src');
+                $imageSourcePathinfo = pathinfo($imageSource);
+                $docImage->setAttribute('alt', $imageSourcePathinfo['filename']);
+            }
+
+        }
+
+        return $doc->getHtml();
+
+    }
+
+    /*
+    * attr
+    *
+    * Adds or replaces one or many attributes for one or many selectors
+    *
+    * @selectors Mixed
+    * String or Array of strings
+    *
+    * @attributes Array
+    * Associative array of attribute names and values
+    *
+    * @overwrite Boolean
+    * Overwrites existing attribute values (optional, true)
+    *
+    */
+    public function attr($html, $selectors, $attributes, $overwrite = true)
+    {
+
+        if (!$html || strlen($html) === 0) {
+            return $html;
+        }
+
+        $selectors = is_array($selectors) ? $selectors : array($selectors);
+
+        $doc = new RetconHtmlDocument($html);
+
+        foreach ($selectors as $selector) {
+
+            // Get all matching selectors, and add/replace attributes
+            if (!$elements = $doc->getElementsBySelector($selector)) {
+                continue;
+            }
+
+            foreach ($elements as $element) {
+
+                foreach ($attributes as $key => $value) {
+
+                    // Add or remove?
+                    if (!$value) {
+
+                        $element->removeAttribute($key);
+
+                    } else if ($value === true) {
+
+                        $element->setAttribute($key, '');
+
+                    } else {
+
+                        if (!$overwrite && $key !== 'id') {
+                            $attributeValues = explode(' ', $element->getAttribute($key));
+                            if (!in_array($value, $attributeValues)) {
+                                $attributeValues[] = $value;
+                            }
+                        } else {
+                            $attributeValues = array($value);
+                        }
+
+                        $element->setAttribute($key, trim(implode(' ', $attributeValues)));
+                    }
+
+                }
+
+            }
+
+        }
+
+        return $doc->getHtml();
+
+    }
+
+    /*
+    * renameAttr
+    *
+    * Renames attributes for matching selectors
+    *
+    * @selectors Mixed
+    * String or Array of strings
+    *
+    * @attributes Array
+    * Associative array of attribute names and desired names
+    *
+    *
+    */
+    public function renameAttr($html, $selectors, $attributes)
+    {
+
+        if (!$html || strlen($html) === 0) {
+            return $html;
+        }
+
+        $selectors = is_array($selectors) ? $selectors : array($selectors);
+
+        $doc = new RetconHtmlDocument($html);
+
+        foreach ($selectors as $selector) {
+
+            if (!$elements = $doc->getElementsBySelector($selector)) {
+                continue;
+            }
+
+            foreach ($elements as $element) {
+
+                foreach ($attributes as $existingAttributeName => $desiredAttributeName) {
+
+                    if (!$desiredAttributeName || $existingAttributeName === $desiredAttributeName || !$element->hasAttribute($existingAttributeName)) {
+                        continue;
+                    }
+
+                    $attributeValue = $element->getAttribute($existingAttributeName);
+                    $element->removeAttribute($existingAttributeName);
+                    $element->setAttribute($desiredAttributeName, $attributeValue);
+
+                }
+
+            }
+
+        }
+
+        return $doc->getHtml();
+
+    }
+
+    /*
+    * remove
+    *
+    * Remove all elements matching given selector(s)
+    *
+    * @selectors Mixed
+    * String or Array of strings
+    *
+    */
+    public function remove($html, $selectors)
+    {
+
+        if (!$html || strlen($html) === 0) {
+            return $html;
+        }
+
+        $selectors = is_array($selectors) ? $selectors : array($selectors);
+
+        $doc = new RetconHtmlDocument($html);
+
+        foreach ($selectors as $selector) {
+
+            // Get all matching selectors, and remove them
+            if (!$elements = $doc->getElementsBySelector($selector)) {
+                continue;
+            }
+
+            $numElements = $elements->length;
 
-			if (!method_exists($this, $filter)) {
-				throw new Exception(Craft::t("Undefined filter method {$filter}"));
-				return $html;
-			}
+            for ($i = $numElements - 1; $i >= 0; --$i) {
+                $element = $elements->item($i);
+                $element->parentNode->removeChild($element);
+            }
 
-			$html = call_user_func_array(array($this, $filter), array_merge(array($html), $args));
+        }
+
+        return $doc->getHtml();
 
-		}
+    }
 
-		return $html;
+    /*
+    * only
+    *
+    * Remove everything except elements matching given selector(s)
+    *
+    * @selectors Mixed
+    * String or Array of strings
+    *
+    */
+    public function only($html, $selectors)
+    {
 
-	}
+        if (!$html || strlen($html) === 0) {
+            return $html;
+        }
 
-	/*
-	* transform
-	*
-	* Apply an image transform to all images.
-	*
-	* @html String
-	*
-	* @transform Mixed
-	* Named (String) or inline transform (Array)
-	*
-	*/
-	public function transform($html, $transform, $transformDefaults = null, $configOverrides = null)
-	{
+        $selectors = is_array($selectors) ? $selectors : array($selectors);
 
-		if (!$html || strlen($html) === 0) {
-			return $html;
-		}
+        $doc = new RetconHtmlDocument($html);
+        $fragment = $doc->createDocumentFragment();
+
+        foreach ($selectors as $selector) {
+
+            if (!$elements = $doc->getElementsBySelector($selector)) {
+                continue;
+            }
+
+            $numElements = $elements->length;
 
-		// Get images from the DOM
-		$doc = new RetconHtmlDocument($html);
+            for ($i = $numElements - 1; $i >= 0; --$i) {
 
-		if (!$docImages = $doc->getElementsByTagName('img')) {
-			return $html;
-		}
+                $fragment->appendChild($elements->item($i));
 
-		// Get transform
-		if (is_string($transform)) {
+            }
 
-			// Named transform
-			$transformHandle = $transform;
+        }
 
-			if (!isset($this->_transforms[$transformHandle])) {
-				$transform = craft()->assetTransforms->getTransformByHandle($transformHandle);
-				$this->_transforms[$transformHandle] = $transform;
-			}
+        $body = $doc->getElementsByTagName('body')->item(0);
+        $body->parentNode->replaceChild($fragment, $body);
 
-			$transform = $this->_transforms[$transformHandle] ?: false;
+        return $doc->getHtml();
 
-		} else if (is_array($transform)) {
+    }
 
-			// Template transform
-			$transform = craft()->assetTransforms->normalizeTransform($transform);
+    /*
+    * change
+    *
+    * Changes tag type/name for given selector(s)
+    *
+    * @selectors Mixed
+    * String or Array of strings
+    *
+    * @toTag String
+    * Tag type matching elements will be converted to, e.g. "span"
+    */
+    public function change($html, $selectors, $toTag)
+    {
 
-		} else {
+        if (!$html || strlen($html) === 0) {
+            return $html;
+        }
 
-			// Nah.
-			return $html;
+        $selectors = is_array($selectors) ? $selectors : array($selectors);
 
-		}
+        $doc = new RetconHtmlDocument($html);
 
-		if (!$transform) {
-			return $html;
-		}
+        foreach ($selectors as $selector) {
 
-		// I can haz Imager?
-		$imagerPlugin = craft()->plugins->getPlugin('imager');
-		if ($imagerPlugin) {
-
-			// Imager doesn't want to deal with AssetTransformModels. Wtf, André.
-			$transform = $transform->getAttributes();
-
-			foreach ($docImages as $docImage) {
+            // Get all matching selectors, and add/replace attributes
+            if (!$elements = $doc->getElementsBySelector($selector)) {
+                continue;
+            }
 
-				$imageUrl = $docImage->getAttribute('src');
-				$imageUrlInfo = parse_url($imageUrl);
+            $numElements = $elements->length;
 
-				$transformedImage = craft()->imager->transformImage($imageUrl, $transform, $transformDefaults, $configOverrides);
+            for ($i = $numElements - 1; $i >= 0; --$i) {
 
-				if ($transformedImage) {
-					$docImage->setAttribute('src', $transformedImage->url);
-					if ($docImage->getAttribute('width')) {
-						$docImage->setAttribute('width', $transformedImage->width);
-					}
-					if ($docImage->getAttribute('height')) {
-						$docImage->setAttribute('height', $transformedImage->height);
-					}
-				}
+                $element = $elements->item($i);
 
-			}
+                // Perform a deep copy of the element, changing its tag name
+                $children = array();
 
-		} else {
+                foreach ($element->childNodes as $child) {
+                    $children[] = $child;
+                }
 
-			// Oh well, let's do our best anyway
-			$transformWidth = $transform->width ?: 'AUTO';
-			$transformHeight = $transform->height ?: 'AUTO';
-			$transformMode = $transform->mode ?: 'crop';
-			$transformPosition = $transform->position ?: 'center-center';
-			$transformQuality = $transform->quality ?: craft()->config->get('defaultImageQuality');
-			$transformFormat = $transform->format ?: null;
+                $newElement = $element->ownerDocument->createElement($toTag);
 
-			// Set format to jpg if we dont have Imagick installed
-			if ($transformFormat !== 'jpg' && !craft()->images->isImagick()) {
-				$transformFormat = 'jpg';
-			}
+                foreach ($children as $child) {
+                    $newElement->appendChild($element->ownerDocument->importNode($child, true));
+                }
 
-			// Create transform handle if missing
-			if (!isset($transformHandle)) {
+                foreach ($element->attributes as $attribute) {
+                    $newElement->setAttribute($attribute->nodeName, $attribute->nodeValue);
+                }
 
-				$transformFilenameAttributes = array(
-					$transformWidth . 'x' . $transformHeight,
-					$transformMode,
-					$transformPosition,
-					$transformQuality
-				);
+                $element->parentNode->replaceChild($newElement, $element);
 
-				$transformHandle = implode('_', $transformFilenameAttributes);
+            }
 
-			}
+        }
 
-			// Get basepaths and URLs
-			$basePath = craft()->retconHtml_helper->getSetting('baseTransformPath');
-			$baseUrl = craft()->retconHtml_helper->getSetting('baseTransformUrl');
+        return $doc->getHtml();
 
-			$siteUrl = rtrim(UrlHelper::getSiteUrl(), '/');
-			$host = parse_url($baseUrl, PHP_URL_HOST);
+    }
 
-			// Transform images and rewrite sources
-			foreach ($docImages as $docImage) {
+    /*
+    * wrap
+    *
+    * Wraps one or many selectors
+    *
+    * @selectors Mixed
+    * String or Array of strings
+    *
+    * @wrapper String
+    * Element to create as wrapper, e.g. "div.wrapper"
+    *
+    */
+    public function wrap($html, $selectors, $wrapper)
+    {
 
-				$imageUrl = $docImage->getAttribute('src');
-				$imageUrlInfo = parse_url($imageUrl);
-				$imagePathInfo = pathinfo($imageUrlInfo['path']);
+        if (!$html || strlen($html) === 0) {
+            return $html;
+        }
 
-				// Check extension
-				if (!in_array(strtolower($imagePathInfo['extension']), $this->_allowedTransformExtensions)) {
-					continue;
-				}
+        $selectors = is_array($selectors) ? $selectors : array($selectors);
 
-				// Is image local?
-				$imageIsLocal = !(isset($imageUrlInfo['host']) && $imageUrlInfo['host'] !== $host);
+        $doc = new RetconHtmlDocument($html);
 
-				if (!$imageIsLocal) {
-					// Non-local images not supported yet
-					continue;
-				}
+        // Get wrapper
+        $wrapper = craft()->retconHtml_helper->getSelectorObject($wrapper);
+        $wrapper->tag = $wrapper->tag === '*' ? 'div' : $wrapper->tag;
+        $wrapperNode = $doc->createElement($wrapper->tag);
 
-				$useAbsoluteUrl = $baseUrl !== $siteUrl || strpos($imageUrl, 'http') > -1 ? true : false;
+        if ($wrapper->attribute) {
+            $wrapperNode->setAttribute($wrapper->attribute, $wrapper->attributeValue);
+        }
 
-				// Build filename/path
-				$imageTransformedFilename = $imagePathInfo['filename'] . '.' . ($transformFormat ?: $imagePathInfo['extension']);
-				$imageTransformedFolder = $basePath . $imagePathInfo['dirname'] . '/_' . $transformHandle;
-				$imageTransformedPath = $imageTransformedFolder . '/' . $imageTransformedFilename;
+        foreach ($selectors as $selector) {
 
-				// Exit if local file doesn't even exist. Sheesh
-				if (!file_exists($basePath . $imageUrlInfo['path'])) {
-					continue;
-				}
+            // Get all matching selectors, and add/replace attributes
+            if (!$elements = $doc->getElementsBySelector($selector)) {
+                continue;
+            }
 
-				// Create folder if need be
-				if (!file_exists($imageTransformedFolder) || !is_dir($imageTransformedFolder)) {
-					$chmod = $imageIsLocal ? fileperms($basePath . $imagePathInfo['dirname']) : 0777;
-					if (!@mkdir($imageTransformedFolder, $chmod, true)) {
-						continue;
-					}
-				}
+            $numElements = $elements->length;
 
-				// Transform image
-				if (!file_exists($imageTransformedPath)) {
+            for ($i = $numElements - 1; $i >= 0; --$i) {
 
-					$docImagesource = $basePath . $imageUrlInfo['path'];
+                $element = $elements->item($i);
+                $wrapperClone = $wrapperNode->cloneNode(true);
+                $element->parentNode->replaceChild($wrapperClone, $element);
+                $wrapperClone->appendChild($element);
 
-					if (!$image = @craft()->images->loadImage($docImagesource)) {
-						continue;
-					}
+            }
 
-					@$image->setQuality($transformQuality);
+        }
 
-					switch ($transformMode) {
+        return $doc->getHtml();
 
-						case 'crop' :
+    }
 
-							@$image->scaleAndCrop($transform->width, $transform->height, true, $transform->position);
+    /*
+    * unwrap
+    *
+    * Removes the parent of given selector(s), retaining all child nodes
+    *
+    * @selectors Mixed
+    * String or Array of strings
+    *
+    */
+    public function unwrap($html, $selectors)
+    {
 
-							break;
+        if (!$html || strlen($html) === 0) {
+            return $html;
+        }
 
-						case 'fit' :
+        $selectors = is_array($selectors) ? $selectors : array($selectors);
 
-							@$image->scaleToFit($transform->width, $transform->height, true);
+        $doc = new RetconHtmlDocument($html);
 
-							break;
+        foreach ($selectors as $selector) {
 
-						default :
+            // Get all matching selectors, and add/replace attributes
+            if (!$elements = $doc->getElementsBySelector($selector)) {
+                continue;
+            }
 
-							@$image->resize($transform->width, $transform->height);
+            $numElements = $elements->length;
 
-					}
+            for ($i = $numElements - 1; $i >= 0; --$i) {
 
-					if (!@$image->saveAs($imageTransformedPath)) {
-						continue;
-					}
+                $element = $elements->item($i);
+                $parentNode = $element->parentNode;
+                $fragment = $doc->createDocumentFragment();
 
-				}
+                while ($parentNode->childNodes->length > 0) {
+                    $fragment->appendChild($parentNode->childNodes->item(0));
+                }
 
-				// Phew!Now where's that src attribute...
-				$imageTransformedUrl = str_replace($basePath, ($useAbsoluteUrl ? $baseUrl : ''), $imageTransformedPath);
+                $parentNode->parentNode->replaceChild($fragment, $parentNode);
 
-				$docImage->setAttribute('src', $imageTransformedUrl);
+            }
 
-				if ($docImage->getAttribute('width')) {
-					$docImage->setAttribute('width', $transformWidth);
-				}
+        }
 
-				if ($docImage->getAttribute('height')) {
-					$docImage->setAttribute('height', $transformHeight);
-				}
+        return $doc->getHtml();
 
-			}
+    }
 
-		}
+    /*
+    * inject
+    *
+    * Injects string value into all elements matching given selector(s)
+    *
+    * @selectors Mixed
+    * String or Array of strings
+    *
+    * @toInject String
+    * Content to inject
+    *
+    */
+    public function inject($html, $selectors, $toInject, $overwrite = false)
+    {
 
-		return $doc->getHtml();
+        if (!$html || strlen($html) === 0) {
+            return $html;
+        }
 
-	}
+        $selectors = is_array($selectors) ? $selectors : array($selectors);
 
-	/*
-	* lazy
-	*
-	* Replaces the src attribute with a base64 encoded, transparent gif
-	* The original source will be retained in a data attribute
-	*
-	* @className String
-	* Class for lazy images (optional, default "lazy")
-	*
-	* @attributeName String
-	* Name of data attribute for original source (optional, default "original")
-	*
-	*/
-	public function lazy($html, $className = null, $attributeName = null)
-	{
+        $doc = new RetconHtmlDocument($html);
 
-		if (!$html || strlen($html) === 0) {
-			return $html;
-		}
+        // What are we trying to inject, exactly?
+        if (preg_match("/<[^<]+>/", $toInject, $matches) != 0) {
+            // Injected content is HTML
+            $fragmentDoc = new RetconHtmlDocument('<div id="injectWrapper">' . $toInject . '</div>');
+            $injectNode = $fragmentDoc->getElementById('injectWrapper')->childNodes->item(0);
+        } else {
+            $textNode = $doc->createTextNode("{$toInject}");
+        }
 
-		$doc = new RetconHtmlDocument($html);
+        foreach ($selectors as $selector) {
 
-		if (!$docImages = $doc->getElementsByTagName('img')) {
-			return $html;
-		}
+            // Get all matching selectors, and add/replace attributes
+            if (!$elements = $doc->getElementsBySelector($selector)) {
+                continue;
+            }
 
-		$attributeName = 'data-' . ($attributeName ?: 'original');
-		$className = $className ?: 'lazy';
+            $numElements = $elements->length;
 
-		foreach ($docImages as $docImage) {
-			$imageClasses = explode(' ', $docImage->getAttribute('class'));
-			$imageClasses[] = $className;
-			$docImage->setAttribute('class', trim(implode(' ', $imageClasses)));
-			$docImage->setAttribute($attributeName, $docImage->getAttribute('src'));
-			$docImage->setAttribute('src', 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7');
-		}
+            for ($i = $numElements - 1; $i >= 0; --$i) {
 
-		return $doc->getHtml();
+                $element = $elements->item($i);
 
-	}
+                if (!$overwrite) {
 
-	/*
-	* autoAlt
-	*
-	* Adds filename as alt attribute for images missing alternative text. Optionally overwrite alt attribute for all images
-	*
-	* @overwrite Boolean
-	* Overwrite existing alt attributes (optional, default false)
-	*
-	*/
-	public function autoAlt($html, $overwrite = false)
-	{
+                    if (isset($injectNode)) {
+                        $element->appendChild($doc->importNode($injectNode->cloneNode(true), true));
+                    } else {
+                        $element->appendChild($textNode->cloneNode());
+                    }
 
-		if (!$html || strlen($html) === 0) {
-			return $html;
-		}
+                } else {
 
-		$doc = new RetconHtmlDocument($html);
+                    if (isset($injectNode)) {
+                        $element->nodeValue = "";
+                        $element->appendChild($doc->importNode($injectNode->cloneNode(true), true));
+                    } else {
+                        $element->nodeValue = $toInject;
+                    }
 
-		if (!$docImages = $doc->getElementsByTagName('img')) {
-			return $html;
-		}
+                }
 
-		foreach ($docImages as $docImage) {
+            }
 
-			$alt = $docImage->getAttribute('alt');
+        }
 
-			if (!$alt || strlen($alt) === 0) {
-				$imageSource = $docImage->getAttribute('src');
-				$imageSourcePathinfo = pathinfo($imageSource);
-				$docImage->setAttribute('alt', $imageSourcePathinfo['filename']);
-			}
+        return $doc->getHtml();
 
-		}
+    }
 
-		return $doc->getHtml();
-
-	}
-
-	/*
-	* attr
-	*
-	* Adds or replaces one or many attributes for one or many selectors
-	*
-	* @selectors Mixed
-	* String or Array of strings
-	*
-	* @attributes Array
-	* Associative array of attribute names and values
-	*
-	* @overwrite Boolean
-	* Overwrites existing attribute values (optional, true)
-	*
-	*/
-	public function attr($html, $selectors, $attributes, $overwrite = true)
-	{
-
-		if (!$html || strlen($html) === 0) {
-			return $html;
-		}
-
-		$selectors = is_array($selectors) ? $selectors : array($selectors);
-
-		$doc = new RetconHtmlDocument($html);
-
-		foreach ($selectors as $selector) {
-
-			// Get all matching selectors, and add/replace attributes
-			if (!$elements = $doc->getElementsBySelector($selector)) {
-				continue;
-			}
-
-			foreach ($elements as $element) {
-
-				foreach ($attributes as $key => $value) {
-
-					// Add or remove?
-					if (!$value) {
-
-						$element->removeAttribute($key);
-
-					} else if ($value === true) {
-
-						$element->setAttribute($key, '');
-
-					} else {
-
-						if (!$overwrite && $key !== 'id') {
-							$attributeValues = explode(' ', $element->getAttribute($key));
-							if (!in_array($value, $attributeValues)) {
-								$attributeValues[] = $value;
-							}
-						} else {
-							$attributeValues = array($value);
-						}
-
-						$element->setAttribute($key, trim(implode(' ', $attributeValues)));
-					}
-
-				}
-
-			}
-
-		}
-
-		return $doc->getHtml();
-
-	}
-
-	/*
-	* remove
-	*
-	* Remove all elements matching given selector(s)
-	*
-	* @selectors Mixed
-	* String or Array of strings
-	*
-	*/
-	public function remove($html, $selectors)
-	{
-
-		if (!$html || strlen($html) === 0) {
-			return $html;
-		}
-
-		$selectors = is_array($selectors) ? $selectors : array($selectors);
-
-		$doc = new RetconHtmlDocument($html);
-
-		foreach ($selectors as $selector) {
-
-			// Get all matching selectors, and remove them
-			if (!$elements = $doc->getElementsBySelector($selector)) {
-				continue;
-			}
-
-			$numElements = $elements->length;
-
-			for ($i = $numElements - 1; $i >= 0; --$i) {
-				$element = $elements->item($i);
-				$element->parentNode->removeChild($element);
-			}
-
-		}
-
-		return $doc->getHtml();
-
-	}
-
-	/*
-	* only
-	*
-	* Remove everything except elements matching given selector(s)
-	*
-	* @selectors Mixed
-	* String or Array of strings
-	*
-	*/
-	public function only($html, $selectors)
-	{
-
-		if (!$html || strlen($html) === 0) {
-			return $html;
-		}
-
-		$selectors = is_array($selectors) ? $selectors : array($selectors);
-
-		$doc = new RetconHtmlDocument($html);
-		$fragment = $doc->createDocumentFragment();
-
-		foreach ($selectors as $selector) {
-
-			if (!$elements = $doc->getElementsBySelector($selector)) {
-				continue;
-			}
-
-			$numElements = $elements->length;
-
-			for ($i = $numElements - 1; $i >= 0; --$i) {
-
-				$fragment->appendChild($elements->item($i));
-
-			}
-
-		}
-
-		$body = $doc->getElementsByTagName('body')->item(0);
-		$body->parentNode->replaceChild($fragment, $body);
-
-		return $doc->getHtml();
-
-	}
-
-	/*
-	* change
-	*
-	* Changes tag type/name for given selector(s)
-	*
-	* @selectors Mixed
-	* String or Array of strings
-	*
-	* @toTag String
-	* Tag type matching elements will be converted to, e.g. "span"
-	*/
-	public function change($html, $selectors, $toTag)
-	{
-
-		if (!$html || strlen($html) === 0) {
-			return $html;
-		}
-
-		$selectors = is_array($selectors) ? $selectors : array($selectors);
-
-		$doc = new RetconHtmlDocument($html);
-
-		foreach ($selectors as $selector) {
-
-			// Get all matching selectors, and add/replace attributes
-			if (!$elements = $doc->getElementsBySelector($selector)) {
-				continue;
-			}
-
-			$numElements = $elements->length;
-
-			for ($i = $numElements - 1; $i >= 0; --$i) {
-
-				$element = $elements->item($i);
-
-				// Perform a deep copy of the element, changing its tag name
-				$children = array();
-
-				foreach ($element->childNodes as $child) {
-					$children[] = $child;
-				}
-
-				$newElement = $element->ownerDocument->createElement($toTag);
-
-				foreach ($children as $child) {
-					$newElement->appendChild($element->ownerDocument->importNode($child, true));
-				}
-
-				foreach ($element->attributes as $attribute) {
-					$newElement->setAttribute($attribute->nodeName, $attribute->nodeValue);
-				}
-
-			    $element->parentNode->replaceChild($newElement, $element);
-
-			}
-
-		}
-
-		return $doc->getHtml();
-
-	}
-
-	/*
-	* wrap
-	*
-	* Wraps one or many selectors
-	*
-	* @selectors Mixed
-	* String or Array of strings
-	*
-	* @wrapper String
-	* Element to create as wrapper, e.g. "div.wrapper"
-	*
-	*/
-	public function wrap($html, $selectors, $wrapper)
-	{
-
-		if (!$html || strlen($html) === 0) {
-			return $html;
-		}
-
-		$selectors = is_array($selectors) ? $selectors : array($selectors);
-
-		$doc = new RetconHtmlDocument($html);
-
-		// Get wrapper
-		$wrapper = craft()->retconHtml_helper->getSelectorObject($wrapper);
-		$wrapper->tag = $wrapper->tag === '*' ? 'div' : $wrapper->tag;
-		$wrapperNode = $doc->createElement($wrapper->tag);
-
-		if ($wrapper->attribute) {
-			$wrapperNode->setAttribute($wrapper->attribute, $wrapper->attributeValue);
-		}
-
-		foreach ($selectors as $selector) {
-
-			// Get all matching selectors, and add/replace attributes
-			if (!$elements = $doc->getElementsBySelector($selector)) {
-				continue;
-			}
-
-			$numElements = $elements->length;
-
-			for ($i = $numElements - 1; $i >= 0; --$i) {
-
-				$element = $elements->item($i);
-				$wrapperClone = $wrapperNode->cloneNode(true);
-				$element->parentNode->replaceChild($wrapperClone, $element);
-				$wrapperClone->appendChild($element);
-
-			}
-
-		}
-
-		return $doc->getHtml();
-
-	}
-
-	/*
-	* unwrap
-	*
-	* Removes the parent of given selector(s), retaining all child nodes
-	*
-	* @selectors Mixed
-	* String or Array of strings
-	*
-	*/
-	public function unwrap($html, $selectors)
-	{
-
-		if (!$html || strlen($html) === 0) {
-			return $html;
-		}
-
-		$selectors = is_array($selectors) ? $selectors : array($selectors);
-
-		$doc = new RetconHtmlDocument($html);
-
-		foreach ($selectors as $selector) {
-
-			// Get all matching selectors, and add/replace attributes
-			if (!$elements = $doc->getElementsBySelector($selector)) {
-				continue;
-			}
-
-			$numElements = $elements->length;
-
-			for ($i = $numElements - 1; $i >= 0; --$i) {
-
-				$element = $elements->item($i);
-				$parentNode = $element->parentNode;
-				$fragment = $doc->createDocumentFragment();
-
-				while ($parentNode->childNodes->length > 0) {
-					$fragment->appendChild($parentNode->childNodes->item(0));
-				}
-
-				$parentNode->parentNode->replaceChild($fragment, $parentNode);
-
-			}
-
-		}
-
-		return $doc->getHtml();
-
-	}
-
-	/*
-	* inject
-	*
-	* Injects string value into all elements matching given selector(s)
-	*
-	* @selectors Mixed
-	* String or Array of strings
-	*
-	* @toInject String
-	* Content to inject
-	*
-	*/
-	public function inject($html, $selectors, $toInject, $overwrite = false)
-	{
-
-		if (!$html || strlen($html) === 0) {
-			return $html;
-		}
-
-		$selectors = is_array($selectors) ? $selectors : array($selectors);
-
-		$doc = new RetconHtmlDocument($html);
-
-		// What are we trying to inject, exactly?
-		if (preg_match("/<[^<]+>/", $toInject, $matches) != 0) {
-			// Injected content is HTML
-			$fragmentDoc = new RetconHtmlDocument('<div id="injectWrapper">' . $toInject . '</div>');
-			$injectNode = $fragmentDoc->getElementById('injectWrapper')->childNodes->item(0);
-		} else {
-			$textNode = $doc->createTextNode("{$toInject}");
-		}
-
-		foreach ($selectors as $selector) {
-
-			// Get all matching selectors, and add/replace attributes
-			if (!$elements = $doc->getElementsBySelector($selector)) {
-				continue;
-			}
-
-			$numElements = $elements->length;
-
-			for ($i = $numElements - 1; $i >= 0; --$i) {
-
-				$element = $elements->item($i);
-
-				if (!$overwrite) {
-
-					if (isset($injectNode)) {
-						$element->appendChild($doc->importNode($injectNode->cloneNode(true), true));
-					} else {
-						$element->appendChild($textNode->cloneNode());
-					}
-
-				} else {
-
-					if (isset($injectNode)) {
-						$element->nodeValue = "";
-						$element->appendChild($doc->importNode($injectNode->cloneNode(true), true));
-					} else {
-						$element->nodeValue = $toInject;
-					}
-
-				}
-
-			}
-
-		}
-
-		return $doc->getHtml();
-
-	}
-
-	/*
-	* hTagCorrect
-	*
-	*
-	*/
-	public function hTagCorrect($html, $startAt = 'h1')
-	{
-		// TODO
-		return $html;
-	}
-
-	/*
-	*	regex
-	*
-	*/
-	public function replace($html, $pattern, $replace = '')
-	{
-		if (!$html || strlen($html) === 0) {
-			return $html;
-		}
-		return preg_replace($pattern, $replace, $html);
-	}
+    /*
+    *	regex
+    *
+    */
+    public function replace($html, $pattern, $replace = '')
+    {
+        if (!$html || strlen($html) === 0) {
+            return $html;
+        }
+        return preg_replace($pattern, $replace, $html);
+    }
 
 }

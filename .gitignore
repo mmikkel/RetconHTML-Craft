@@ -5,7 +5,7 @@
 
 .ssh/
 _backup/
-
+/.idea
 *.sassc
 .sass-cache
 .DS_Store

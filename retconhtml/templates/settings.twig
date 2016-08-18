@@ -15,8 +15,8 @@
 		{{ forms.text({
 			id: 'baseTransformPath',
 			name: 'baseTransformPath',
-			value : settings.baseTransformPath,
-			placeholder : '{baseUrl}/something/something/',
+			value: settings.baseTransformPath,
+			placeholder: '{baseUrl}/something/something/',
 		}) }}
 	</div>
 
@@ -29,12 +29,25 @@
 		{{ forms.text({
 			id: 'baseTransformUrl',
 			name: 'baseTransformUrl',
-			value : settings.baseTransformUrl,
-			placeholder : '{siteUrl}/something/something/',
+			value: settings.baseTransformUrl,
+			placeholder: '{siteUrl}/something/something/',
 		}) }}
 	</div>
 
 </div>
+
+{% if craft.retconHtml.getImagerPlugin %}
+<div class="field" id="useImager-field">
+	<div class="heading">
+		<label for="useImager">Use <a href="https://github.com/aelvan/Imager-Craft" target="_blank">Imager</a> for image transforms</label>
+		{{ forms.lightswitch({
+			id: 'useImager',
+			name: 'useImager',
+			on: settings.useImager
+		}) }}
+	</div>
+</div>
+{% endif %}
 
 <h3>Other settings</h3>
 
@@ -66,30 +79,5 @@
 
 	<h3>Disclaimer</h3>
 	<p>Retcon HTML is provided free of charge. The author is not responsible for data loss or any other problems resulting from the use of this plugin.<br/>Please report any bugs, feature requests or other issues <a href="{{ craft.retconHtml.getPlugin.getPluginUrl }}">here</a>. As Retcon HTML is a hobby project, no promises are made regarding response time, feature implementations or bug amendments.</p>
-
-	<p><strong>Pull requests are very welcome!</strong></p>
-
-	<hr/>
-
-	<h4>Changelog</h4>
-
-	<h5>v. 1.0.3</h5>
-	<ul>
-		<li>Fixed typo in settings template</li>
-	</ul>
-
-	<h5>v. 1.0.2</h5>
-	<ul>
-		<li>Fixed issue with undefined constant CRAFT_SITE_URL</li>
-	</ul>
-
-	<h5>v. 1.0.1</h5>
-	<ul>
-		<li>Fixed issue with hostname parsing for image URLs (could cause images to not be recognized as local assets)</li>
-		<li>Fixed issue with uppercase file extensions not being allowed (could cause image transforms to be rejected)</li>
-	</ul>
-
-	<h5>v. 1.0</h5>
-	<p><em>Initial public release</em></p>
 
 </div>
