@@ -1,8 +1,8 @@
-# Retcon v. 1.2.2 for Craft CMS ![Craft 2.5](https://img.shields.io/badge/craft-2.5-red.svg?style=flat-square)
+# Retcon v. 1.3 for Craft CMS ![Craft 2.5](https://img.shields.io/badge/craft-2.5-red.svg?style=flat-square)
 
 ## Got WYSIWYG?
 
-Ever have a client put 4 MB PNG files in their Redactor fields, failing to apply any of your meticulously crafted image transforms? Writers consistently using the `<strong>` tag for headers? Have you ever needed to implement lazy loading of images embedded in WYSIWYG content, or wanted to remove pesky inline styles without breaking a sweat? This is for you.
+Ever have a client put 4 MB PNG files in their Redactor fields, failing to apply any of your meticulously crafted image transforms? Writers consistently using the `<strong>` tag for headers? Have you ever needed to implement lazy loading of images embedded in WYSIWYG content, responsive images or wanted to remove pesky inline styles without breaking a sweat? This is for you.
 
 **Retcon** is a small [Craft CMS](http://buildwithcraft.com) plugin offering a series of easy-to-use Twig filters for manipulating HTML content.
 
@@ -77,16 +77,22 @@ echo craft()->retconHtml->retcon($entry->body, array(
 ### Methods
 
 **[transform](https://github.com/mmikkel/RetconHTML-Craft/wiki/Transform)**
-Apply a named or inline image transform to all (matched) images. If installed, Retcon uses [Imager](https://github.com/aelvan/Imager-Craft) to apply the transform.
+Apply a named or inline image transform to all images. If installed, Retcon uses [Imager](https://github.com/aelvan/Imager-Craft) to apply the transform.  
+
+**[srcset](https://github.com/mmikkel/RetconHTML-Craft/wiki/srcset)**
+Apply an array of named or inline image transform to all images, for simple srcset support. If installed, Retcon uses [Imager](https://github.com/aelvan/Imager-Craft) to apply the transforms.  
 
 **[lazy](https://github.com/mmikkel/RetconHTML-Craft/wiki/Lazy)**
-Replaces the _src_ attribute of image tags with a transparent, 1x1 px base64 encoded gif, retaining the original source in a data attribute
+Replaces the _src_ attribute of image tags with a transparent, 1x1 px base64 encoded SVG, placing the original image's src in a data-attribute and retaining the original image's aspect ratio  
 
 **[autoAlt](https://github.com/mmikkel/RetconHTML-Craft/wiki/AutoAlt)**
 Adds filename as alternative text for images missing alt tags
 
 **[attr](https://github.com/mmikkel/RetconHTML-Craft/wiki/Attr)**
-Adds and/or replaces a set of attributes and attribute values – e.g. `class`. Can be used to remove inline styles.
+Adds and/or replaces a set of attributes and attribute values – e.g. `class`. Can be used to remove inline styles.  
+
+**[renameAttr](https://github.com/mmikkel/RetconHTML-Craft/wiki/renameAttr)**
+Renames existing attributes for matching selectors, retaining the attribute values.  
 
 **[wrap](https://github.com/mmikkel/RetconHTML-Craft/wiki/Wrap)**
 Wraps stuff in other stuff
@@ -118,7 +124,10 @@ By default, Retcon will store any transformed images to a subfolder below the or
 Self explanatory.
 
 #### Encoding
-HTML output will be encoded to **UTF-8** by default, but you can set the encoding to be anything you want.
+HTML output will be encoded to **UTF-8** by default, but you can set the encoding to be anything you want.  
+
+### Use Imager
+If installed, Retcon will use the Imager plugin by André Elvan for all image transforms. You can turn it off, though.  
 
 ### Disclaimer & support
 Retcon is provided free of charge. The author is not responsible for data loss or any other problems resulting from the use of this plugin.
