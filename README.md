@@ -136,6 +136,13 @@ As Retcon is a hobby project, no promises are made regarding response time, feat
 
 #### Changelog
 
+##### 1.3
+
+* [Added] Adds retconSrcset filter for simple responsive images
+* [Added] Adds retconRenameAttr filter for renaming attribute names
+* [Added] Adds setting to turn off Imager support
+* [Improved] The rectonLazy filter base64 string now retains the aspect ratio for the original image
+
 ##### 1.2.2
 
 * [Fixed] Fixed an issue where a missing $options parameter to RetconHtmlDocument would throw a warning in PHP7
