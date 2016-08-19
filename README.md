@@ -1,4 +1,4 @@
-# Retcon v. 1.3 for Craft CMS ![Craft 2.5](https://img.shields.io/badge/craft-2.5-red.svg?style=flat-square)
+# Retcon v. 1.3.1 for Craft CMS ![Craft 2.5](https://img.shields.io/badge/craft-2.5-red.svg?style=flat-square)
 
 ## Got WYSIWYG?
 
@@ -89,25 +89,25 @@ Replaces the _src_ attribute of image tags with a transparent, 1x1 px base64 enc
 Adds filename as alternative text for images missing alt tags
 
 **[attr](https://github.com/mmikkel/RetconHTML-Craft/wiki/Attr)**
-Adds and/or replaces a set of attributes and attribute values – e.g. `class`. Can be used to remove inline styles.  
+Adds, replaces or removes a set of attributes and attribute values – e.g. `class`. Can be used to remove inline styles.  
 
 **[renameAttr](https://github.com/mmikkel/RetconHTML-Craft/wiki/renameAttr)**
 Renames existing attributes for matching selectors, retaining the attribute values.  
 
 **[wrap](https://github.com/mmikkel/RetconHTML-Craft/wiki/Wrap)**
-Wraps stuff in other stuff
+Wraps stuff in other stuff  
 
 **[unwrap](https://github.com/mmikkel/RetconHTML-Craft/wiki/Unwrap)**
-Removes parent node, retaining all children
+Removes parent node for matching elements  
 
 **[remove](https://github.com/mmikkel/RetconHTML-Craft/wiki/Remove)**
-Removes all elements matching the given selector(s)
+Removes all elements matching the given selector(s)  
 
 **[only](https://github.com/mmikkel/RetconHTML-Craft/wiki/Only)**
-Removes everything but the elements matching the given selector(s)
+Removes everything but the elements matching the given selector(s)  
 
 **[change](https://github.com/mmikkel/RetconHTML-Craft/wiki/Change)**
-Changes tag type
+Changes tag type for all elements matching the given selector(s). Can also remove the tag(s) completely, retaining inner content  
 
 **[inject](https://github.com/mmikkel/RetconHTML-Craft/wiki/Inject)**
 Inject strings or HTML
@@ -135,6 +135,10 @@ Please see [the Wiki page](https://github.com/mmikkel/RetconHTML-Craft/wiki) for
 As Retcon is a hobby project, no promises are made regarding response time, feature implementations or bug amendments.
 
 #### Changelog
+
+##### 1.3.1
+
+* [Improved] The retconChange filter is now able to remove tag(s) completely for matching selectors, retaining content
 
 ##### 1.3
 

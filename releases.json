@@ -1,5 +1,13 @@
 [
     {
+        "version": "1.3.1",
+        "downloadUrl": "https://github.com/mmikkel/RetconHTML-Craft/archive/master.zip",
+        "date": "2016-08-19T10:00:00-08:00",
+        "notes": [
+            "[Improved] The retconChange filter is now able to remove tag completely for matching selectors, retaining content"
+        ]
+    },
+    {
         "version": "1.3",
         "downloadUrl": "https://github.com/mmikkel/RetconHTML-Craft/archive/master.zip",
         "date": "2016-08-18T10:00:00-08:00",

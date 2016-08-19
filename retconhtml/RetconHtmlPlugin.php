@@ -17,7 +17,7 @@ class RetconHtmlPlugin extends BasePlugin
     /**
      * @var string
      */
-    protected $_version = '1.3';
+    protected $_version = '1.3.1';
     /**
      * @var string
      */

@@ -501,8 +501,9 @@ class RetconHtmlService extends BaseApplicationComponent
     * @selectors Mixed
     * String or Array of strings
     *
-    * @toTag String
+    * @toTag String/Boolean
     * Tag type matching elements will be converted to, e.g. "span"
+    * Pass `false` to remove tag, retaining content
     */
     public function change($html, $selectors, $toTag)
     {
@@ -528,24 +529,29 @@ class RetconHtmlService extends BaseApplicationComponent
 
                 $element = $elements->item($i);
 
-                // Perform a deep copy of the element, changing its tag name
-                $children = array();
-
-                foreach ($element->childNodes as $child) {
-                    $children[] = $child;
+                // Deep copy the (inner) element
+                $fragment = $doc->createDocumentFragment();    
+                while($element->childNodes->length > 0) {
+                    $fragment->appendChild($element->childNodes->item(0));
                 }
 
-                $newElement = $element->ownerDocument->createElement($toTag);
+                // Remove or change the tag?
+                if (!$toTag) {
+                    
+                    // Remove it chief
+                    $element->parentNode->replaceChild($fragment, $element);
 
-                foreach ($children as $child) {
-                    $newElement->appendChild($element->ownerDocument->importNode($child, true));
+                } else {
+
+                    // Ch-ch-changes
+                    $newElement = $element->ownerDocument->createElement($toTag);
+                    foreach ($element->attributes as $attribute) {
+                        $newElement->setAttribute($attribute->nodeName, $attribute->nodeValue);
+                    }
+                    $newElement->appendChild($fragment);
+                    $element->parentNode->replaceChild($newElement, $element);
+
                 }
-
-                foreach ($element->attributes as $attribute) {
-                    $newElement->setAttribute($attribute->nodeName, $attribute->nodeValue);
-                }
-
-                $element->parentNode->replaceChild($newElement, $element);
 
             }
 
