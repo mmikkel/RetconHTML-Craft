@@ -342,18 +342,9 @@ class RetconHtml_HelperService extends BaseApplicationComponent
      * @param bool $removeTrailing
      * @return mixed
      */
-    public function fixSlashes($str, $removeInitial = false, $removeTrailing = false)
+    public function fixSlashes($str)
     {
-        $r = str_replace('//', '/', $str);
-        if (strlen($r) > 0) {
-            if ($removeInitial && ($r[0] == '/')) {
-                $r = substr($r, 1);
-            }
-            if ($removeTrailing && ($r[strlen($r) - 1] == '/')) {
-                $r = substr($r, 0, strlen($r) - 1);
-            }
-        }
-        return $r;
+        return preg_replace('~(^|[^:])//+~', '\\1/', $str);
     }
 
     /**
