@@ -478,10 +478,8 @@ class RetconHtmlService extends BaseApplicationComponent
 
             $numElements = $elements->length;
 
-            for ($i = $numElements - 1; $i >= 0; --$i) {
-
-                $fragment->appendChild($elements->item($i));
-
+            for ($i = 0; $i < $numElements; ++$i) {
+              $fragment->appendChild($elements->item($i));
             }
 
         }
@@ -530,14 +528,14 @@ class RetconHtmlService extends BaseApplicationComponent
                 $element = $elements->item($i);
 
                 // Deep copy the (inner) element
-                $fragment = $doc->createDocumentFragment();    
+                $fragment = $doc->createDocumentFragment();
                 while($element->childNodes->length > 0) {
                     $fragment->appendChild($element->childNodes->item(0));
                 }
 
                 // Remove or change the tag?
                 if (!$toTag) {
-                    
+
                     // Remove it chief
                     $element->parentNode->replaceChild($fragment, $element);
 

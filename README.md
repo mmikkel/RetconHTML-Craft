@@ -1,4 +1,4 @@
-# Retcon v. 1.3.2 for Craft CMS ![Craft 2.5](https://img.shields.io/badge/craft-2.5-red.svg?style=flat-square)
+# Retcon v. 1.3.3 for Craft CMS ![Craft 2.5](https://img.shields.io/badge/craft-2.5-red.svg?style=flat-square)
 
 ## Got WYSIWYG?
 
@@ -135,6 +135,10 @@ Please see [the Wiki page](https://github.com/mmikkel/RetconHTML-Craft/wiki) for
 As Retcon is a hobby project, no promises are made regarding response time, feature implementations or bug amendments.
 
 #### Changelog
+
+##### 1.3.3
+
+* [Fixed] The retconOnly filter no longer returns matching elements in reversed order
 
 ##### 1.3.2
 
