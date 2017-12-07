@@ -1,5 +1,8 @@
 # Retcon v. 1.3.3 for Craft CMS ![Craft 2.5](https://img.shields.io/badge/craft-2.5-red.svg?style=flat-square)
 
+## Craft 3
+Retcon for Craft 3 is in development, and will be available in the Plugin Store at some point (probably soon-ish).  
+
 ## Got WYSIWYG?
 
 Ever have a client put 4 MB PNG files in their Redactor fields, failing to apply any of your meticulously crafted image transforms? Writers consistently using the `<strong>` tag for headers? Have you ever needed to implement lazy loading of images embedded in WYSIWYG content, responsive images or wanted to remove pesky inline styles without breaking a sweat? This is for you.
