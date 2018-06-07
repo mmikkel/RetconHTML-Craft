@@ -1,7 +1,7 @@
 # Retcon v. 1.3.3 for Craft CMS ![Craft 2.5](https://img.shields.io/badge/craft-2.5-red.svg?style=flat-square)
 
 ## Craft 3
-Retcon for Craft 3 is in development, and will be available in the Plugin Store at some point (probably soon-ish).  
+The Craft 3 version is [here](https://github.com/mmikkel/Retcon-Craft)!
 
 ## Got WYSIWYG?
 
