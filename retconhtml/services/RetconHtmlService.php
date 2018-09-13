@@ -41,7 +41,7 @@ class RetconHtmlService extends BaseApplicationComponent
             $filter = array_shift($args);
 
             if (!method_exists($this, $filter)) {
-                throw new Exception(Craft::t('Undefined filter method {$filter}'));
+                throw new Exception(Craft::t('Undefined filter method '.$filter));
                 return $html;
             }
 
